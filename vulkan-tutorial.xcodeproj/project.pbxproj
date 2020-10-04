@@ -34,6 +34,7 @@
 		99A9D4232528CA91000BCD3C /* libMoltenVK.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMoltenVK.a; path = "../vulkansdk-macos-1.2.148.1/MoltenVK/macOS/static/libMoltenVK.a"; sourceTree = "<group>"; };
 		99A9D4242528CA91000BCD3C /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = "../vulkansdk-macos-1.2.148.1/MoltenVK/macOS/dynamic/libMoltenVK.dylib"; sourceTree = "<group>"; };
 		99C05A532529527A002E0D0C /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		99C05A57252956DC002E0D0C /* LICENCE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENCE.md; sourceTree = "<group>"; };
 		99E5C0C62523D7410071F105 /* vulkan-tutorial */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "vulkan-tutorial"; sourceTree = BUILT_PRODUCTS_DIR; };
 		99E5C0C92523D7410071F105 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		99E5C0E72523E5060071F105 /* libglfw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglfw3.a; path = "../glfw-3.3.2/src/libglfw3.a"; sourceTree = "<group>"; };
@@ -87,6 +88,7 @@
 				99E5C0C92523D7410071F105 /* main.c */,
 				99597C4F252927AD00C159CA /* README.md */,
 				99C05A532529527A002E0D0C /* .gitignore */,
+				99C05A57252956DC002E0D0C /* LICENCE.md */,
 			);
 			path = "vulkan-tutorial";
 			sourceTree = "<group>";
