@@ -1,9 +1,3 @@
-//
-//  main.c
-//  vulkan-tutorial
-//
-//  Created by Alejandro Ball on 29/09/2020.
-//
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -14,6 +8,12 @@
 #include "linmath.h"
 
 
+//Check the suitability of a device for use fo Vulkan API
+// This can be a very indepth function, however atm we just look to see if a
+//suitable device was found.
+bool isDeviceSuitable(VkPhysicalDevice device) {
+    return true;
+}
 
 int main(void) {
 // Opening glfw window setup...
@@ -49,7 +49,8 @@ int main(void) {
 //    with the VkLayerProperties struct we've just created.
     if (layerCount > 0) {
         VkLayerProperties *instance_layers = malloc(sizeof(VkLayerProperties) * layerCount);
-        vkEnumerateInstanceLayerProperties(&layerCount, instance_layers);
+        VkResult instanceResult = vkEnumerateInstanceLayerProperties(&layerCount, instance_layers);
+        printf("Instamce layer enum result: %d\n", instanceResult);
         
 //        After retrieving the layers we make sure to have the length of our validationLayers
 //        array for iteration.
@@ -71,7 +72,7 @@ int main(void) {
                 }
             }
             if (!foundvalidationLayer) {
-                printf("Cannot find layer: %s\n", &instance_validation_layers[i]);
+                printf("Cannot find validation layer\n");
             }
             else
             {
@@ -133,7 +134,7 @@ int main(void) {
     VkResult result = vkCreateInstance(&createInfo, NULL, &instance);
     
     if (result != VK_SUCCESS)
-        printf("failed to create Vulkan instance! Error code: %d\n", (int)result);
+        printf("failed to create Vulkan instance! Return code: %d\n", (int)result);
     else
         printf("VkInstance successfully created!\n Return code: %d \n", (int)result);
 
@@ -146,31 +147,54 @@ int main(void) {
 //  lets print out the names of the extensions available
     VkExtensionProperties* instance_extensions = malloc(sizeof(VkExtensionProperties) * extensionCount);
     vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, instance_extensions);
-//    for (int i = 0; i < extensionCount; i++) {
-//        printf("Extension name: %s \n", instance_extensions[i].extensionName);
-//    }
+    for (int i = 0; i < extensionCount; i++) {
+        printf("Extension name: %s \n", instance_extensions[i].extensionName);
+    }
     
 //    free the allocated memory for instance_extensions
     free(instance_extensions);
 
     
-//    :Next major step
+//    STEP 2 ??? : Next major step
 //    Setting up the physical devices
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     uint32_t deviceCount = 0;
+
     vkEnumeratePhysicalDevices(instance, &deviceCount, NULL);
-    if (deviceCount > 0) {
+    if (deviceCount > 0)
+    {
         printf("GPU device found!\n");
         VkPhysicalDevice* physical_device = malloc(sizeof(VkPhysicalDevice) * deviceCount);
         vkEnumeratePhysicalDevices(instance, &deviceCount, physical_device);
-        /* For tri demo we just grab the first physical device */
-        physicalDevice = physical_device[0];
+        
+        for (int i = 0; i < deviceCount; i++) {
+            if (isDeviceSuitable(*physical_device))
+            {
+                printf("GPU device is suitable for Vulkan API.\n");
+                physicalDevice = physical_device[i];
+                break;
+            }
+        }
+        if (physicalDevice == VK_NULL_HANDLE)
+        {
+            printf("GPU device found is not suitable for Vulkan API");
+        }
         free(physical_device);
     }
+    else
+    {
+        printf("failed to find GPUs with Vulkan support!\n\n");
+        return -1;
+    }
+//    The main device has been detected and varified as suitable for Vulkan API
+//    This can be an indepth process of reviewing the device and understanding the GPUs
+//    limitations. For not we just grab the device that is suitable for Vulkan API.
     
-//    Queue Family... Whatever that means...!!
+//    STEP 2.1 :: Queue Family... Whatever that means...!!
     // Logic to find queue family indices to populate struct with
-    uint32_t graphicsFamilyIndices;
+//    Just below are the queue variable
+    uint32_t graphicsFamilyIndices = 0;
+    uint32_t presentFamily;
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, NULL);
 
@@ -178,18 +202,19 @@ int main(void) {
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies);
     if (queueFamilyCount >= 1)
     {
-        printf("%d Family queue found, number of queues per family group: %zu \n", queueFamilyCount, queueFamilies->queueCount);
+//        review code
+        printf("%d Family queue found, number of queues per family group: %u \n", queueFamilyCount, queueFamilies->queueCount);
         for (int i = 0; i < queueFamilyCount; i++)
         {
             if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
             {
                     graphicsFamilyIndices = i;
                     printf("Graphics Family indices: %d \n", graphicsFamilyIndices);
-                    printf("Queue Flags: %zu \n", queueFamilies[i].queueFlags);
+                    printf("Queue Flags: %u \n", queueFamilies[i].queueFlags);
                     break; /* Use break to prevent the */
             }
         }
-        
+//        reviw end
     }
         
     VkDevice device;
@@ -224,8 +249,29 @@ int main(void) {
     }
 
     
+//    Next major step
+//    Window surface
+    
+    VkSurfaceKHR surface;
+    
+    VkResult surfaceResult = glfwCreateWindowSurface(instance, window, NULL, &surface);
+    
+    printf("Surface results code: %d \n", (int)surfaceResult);
+    
+    VkBool32 presentSupport = false;
+    vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, graphicsFamilyIndices, surface, &presentSupport);
+    if (presentSupport) {
+        presentFamily = graphicsFamilyIndices;
+    }
+    
+//    Completing presentation queue
     VkQueue graphicsQueue;
     vkGetDeviceQueue(device, graphicsFamilyIndices, 0, &graphicsQueue);
+    
+    VkSurfaceCapabilitiesKHR capabilities;
+    
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
+    
     
     
     
@@ -250,6 +296,7 @@ int main(void) {
 //    Program clean up
     free(queueFamilies);
     vkDestroyDevice(device, NULL);
+    vkDestroySurfaceKHR(instance, surface, NULL);
     vkDestroyInstance(instance, NULL);
     glfwDestroyWindow(window);
     glfwTerminate();
