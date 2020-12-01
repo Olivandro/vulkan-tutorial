@@ -10,7 +10,6 @@
 		9994453C2528B82E007B6D82 /* libglfw.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 99E5C0EE2523E8CB0071F105 /* libglfw.3.dylib */; };
 		9994453D2528B82E007B6D82 /* libglfw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9994452E2528B641007B6D82 /* libglfw3.a */; };
 		9994453E2528B867007B6D82 /* libvulkan.1.2.148.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 999445302528B66D007B6D82 /* libvulkan.1.2.148.dylib */; };
-		9994453F2528B867007B6D82 /* libvulkan.1.2.148.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 999445302528B66D007B6D82 /* libvulkan.1.2.148.dylib */; };
 		99E5C0CA2523D7410071F105 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 99E5C0C92523D7410071F105 /* main.c */; };
 /* End PBXBuildFile section */
 
@@ -47,7 +46,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				9994453E2528B867007B6D82 /* libvulkan.1.2.148.dylib in Frameworks */,
-				9994453F2528B867007B6D82 /* libvulkan.1.2.148.dylib in Frameworks */,
 				9994453C2528B82E007B6D82 /* libglfw.3.dylib in Frameworks */,
 				9994453D2528B82E007B6D82 /* libglfw3.a in Frameworks */,
 			);
@@ -62,6 +60,13 @@
 				999445362528B761007B6D82 /* linmath.h */,
 			);
 			path = dep;
+			sourceTree = "<group>";
+		};
+		99A0379725770030006BA209 /* shaders */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = shaders;
 			sourceTree = "<group>";
 		};
 		99E5C0BD2523D7410071F105 = {
@@ -84,6 +89,7 @@
 		99E5C0C82523D7410071F105 /* vulkan-tutorial */ = {
 			isa = PBXGroup;
 			children = (
+				99A0379725770030006BA209 /* shaders */,
 				993BE4212525000000EAF159 /* dep */,
 				99E5C0C92523D7410071F105 /* main.c */,
 				99597C4F252927AD00C159CA /* README.md */,
@@ -132,7 +138,7 @@
 		99E5C0BE2523D7410071F105 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1200;
+				LastUpgradeCheck = 1220;
 				TargetAttributes = {
 					99E5C0C52523D7410071F105 = {
 						CreatedOnToolsVersion = 12.0.1;
@@ -302,6 +308,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "vulkan-tutorial/vulkan-tutorial.entitlements";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = ZQ92FN7Y2N;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -319,6 +326,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = "vulkan-tutorial/vulkan-tutorial.entitlements";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = ZQ92FN7Y2N;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -336,7 +344,7 @@
 				99E5C0CC2523D7410071F105 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 		99E5C0CD2523D7410071F105 /* Build configuration list for PBXNativeTarget "vulkan-tutorial" */ = {
 			isa = XCConfigurationList;
@@ -345,7 +353,7 @@
 				99E5C0CF2523D7410071F105 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
+			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
 	};

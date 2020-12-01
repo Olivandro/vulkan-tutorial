@@ -194,29 +194,37 @@ int main(void) {
     // Logic to find queue family indices to populate struct with
 //    Just below are the queue variable
     uint32_t graphicsFamilyIndices = 0;
-    uint32_t presentFamily;
+//    Dont think I need this...
+    uint32_t queueCount = 0;
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, NULL);
+
 
     VkQueueFamilyProperties* queueFamilies = malloc(sizeof(VkQueueFamilyProperties) * queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies);
     if (queueFamilyCount >= 1)
     {
-//        review code
-        printf("%d Family queue found, number of queues per family group: %u \n", queueFamilyCount, queueFamilies->queueCount);
+        printf("%d Family queues found\n", queueFamilyCount);
+        for (int i = 0; i < queueFamilyCount; i++) {
+            printf("Family queue num: %d has %u queues within it.\n", i+1, queueFamilies[i].queueCount);
+        }
         for (int i = 0; i < queueFamilyCount; i++)
         {
             if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
             {
                     graphicsFamilyIndices = i;
+                    queueCount = queueFamilies[i].queueCount;
                     printf("Graphics Family indices: %d \n", graphicsFamilyIndices);
                     printf("Queue Flags: %u \n", queueFamilies[i].queueFlags);
-                    break; /* Use break to prevent the */
+                    break;
             }
         }
-//        reviw end
     }
-        
+    free(queueFamilies);
+
+//    Currently here in code review....
+//    Looking at this as STEP 3
+//    STEP 3:: Setting up a logical devices to interface with.
     VkDevice device;
     
     float queuePriority = 1.0f;
@@ -224,13 +232,16 @@ int main(void) {
     {
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .queueFamilyIndex = graphicsFamilyIndices,
-        .queueCount = 1,
+        .queueCount = queueCount,
         .pQueuePriorities = &queuePriority
     };
     
+//    Instantiate struct of device feature available. With initialised
+//    everything is set to true.
     VkPhysicalDeviceFeatures deviceFeatures;
+    vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
 //    Set all physical device features to false.
-    memset(&deviceFeatures, 0, sizeof(deviceFeatures));
+//    memset(&deviceFeatures, 0, sizeof(deviceFeatures));
     
     VkDeviceCreateInfo deviceCreateinfo =
     {
@@ -238,10 +249,44 @@ int main(void) {
         .pQueueCreateInfos = &queueCreateInfo,
         .queueCreateInfoCount = 1,
         .pEnabledFeatures = &deviceFeatures,
-        .enabledExtensionCount = 0,
+//        .enabledExtensionCount = 0,
         .enabledLayerCount = 1,
         .ppEnabledLayerNames = &validationLayers
     };
+    
+    
+//    moved components
+    const char* deviceExtensions =
+    {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME
+    };
+    
+    uint32_t deviceExtensionCount;
+    vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &deviceExtensionCount, NULL);
+    VkExtensionProperties* availableExtension = malloc(sizeof(VkExtensionProperties) * deviceExtensionCount);
+    
+    vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &deviceExtensionCount, availableExtension);
+  
+//    Have to re-wite this loop, to be slightly better...
+    for (int i = 0; i < deviceExtensionCount; i++)
+    {
+        if (strcmp((const char*) &deviceExtensions, (const char*) &availableExtension[i].extensionName))
+        {
+//            we can be even more efficient with this by creating a bool value rtn for found divice extensions *
+            printf("%s extension support found\n", deviceExtensions);
+            break;
+        }
+//        printf("%s\n", availableExtension[i].extensionName);
+    }
+    
+
+//    This has to happen before logical device creation..... Meaning that device extensions...
+//    i.e. enabling device extensions is essential during STEP 3...
+//    Literally... I hate OOP and this Vulkan tutorial.
+    deviceCreateinfo.enabledExtensionCount = 1;
+    deviceCreateinfo.ppEnabledExtensionNames = &deviceExtensions;
+    free(availableExtension);
+//    END of moved components
     
     
     if (vkCreateDevice(physicalDevice, &deviceCreateinfo, NULL, &device) != VK_SUCCESS) {
@@ -249,41 +294,282 @@ int main(void) {
     }
 
     
-//    Next major step
+//    STEP 4??:: Next major step
 //    Window surface
     
     VkSurfaceKHR surface;
     
     VkResult surfaceResult = glfwCreateWindowSurface(instance, window, NULL, &surface);
+    if (surfaceResult != VK_SUCCESS)
+    {
+        printf("Surface results code: %d \n", (int)surfaceResult);
+        printf("Please look up result in vulkan_core.h\n");
+    }
+    else
+        printf("GLFW VK window surface successfully created!\n");
     
-    printf("Surface results code: %d \n", (int)surfaceResult);
     
+    uint32_t presentFamily;
     VkBool32 presentSupport = false;
     vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, graphicsFamilyIndices, surface, &presentSupport);
-    if (presentSupport) {
+    if (presentSupport)
+    {
+//        Indicate what is the present family being used which also has support.
         presentFamily = graphicsFamilyIndices;
+        printf("Present graphics family being used: %u\n", presentFamily);
     }
+    else
+        presentFamily = 0;
     
 //    Completing presentation queue
     VkQueue graphicsQueue;
-    vkGetDeviceQueue(device, graphicsFamilyIndices, 0, &graphicsQueue);
+    vkGetDeviceQueue(device, presentFamily, graphicsFamilyIndices, &graphicsQueue);
+    
+//    STEP 5:: Sway change and looking to see if we have support
+//    First thing is to see if we have swap chain support.
+//    const char* deviceExtensions =
+//    {
+//        VK_KHR_SWAPCHAIN_EXTENSION_NAME
+//    };
+//
+//    uint32_t deviceExtensionCount;
+//    vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &deviceExtensionCount, NULL);
+//    VkExtensionProperties* availableExtension = malloc(sizeof(VkExtensionProperties) * deviceExtensionCount);
+//
+//    vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &deviceExtensionCount, availableExtension);
+//
+////    Have to re-wite this loop, to be slightly better...
+//    for (int i = 0; i < deviceExtensionCount; i++)
+//    {
+//        if (strcmp((const char*) &deviceExtensions, (const char*) &availableExtension[i].extensionName))
+//        {
+////            we can be even more efficient with this by creating a bool value rtn for found divice extensions *
+//            printf("%s extension support found\n", deviceExtensions);
+//            break;
+//        }
+////        printf("%s\n", availableExtension[i].extensionName);
+//    }
+//
+//
+////    This has to happen before logical device creation..... Meaning that device extensions...
+////    i.e. enabling device extensions is essential during STEP 3...
+////    Literally... I hate OOP and this Vulkan tutorial.
+//    deviceCreateinfo.enabledExtensionCount = ((uint32_t) sizeof(deviceExtensions));
+//    deviceCreateinfo.ppEnabledExtensionNames = &deviceExtensions;
+//    free(availableExtension);
+    
+//    Botyh moved from different locations....
+//    if (vkCreateDevice(physicalDevice, &deviceCreateinfo, NULL, &device) != VK_SUCCESS) {
+//        printf("failed to create logical device!\n");
+//    }
+//    vkGetDeviceQueue(device, presentFamily, graphicsFamilyIndices, &graphicsQueue);
+//    END OF MOVED COMPONENTS
+    
+//    STEP 5.2: We are now checking for compatibilitoes
     
     VkSurfaceCapabilitiesKHR capabilities;
+    VkResult surfaceCapabilitesResult = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
+    if (surfaceCapabilitesResult != VK_SUCCESS) {
+        printf("Surface capabilities initialisation failed.\n");
+        printf("return code: %u\n", surfaceCapabilitesResult);
+    }
     
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
+//    Initial these two VK structs...
+//    more information on stucts and dat inside to come...
+//    The reason we initialise these here is because we will use them just below, however the resizing is
+//    happening after we check the result back from surface formats KHR
+//    This is to prevent them being un-initialised.
+    VkSurfaceFormatKHR* formats = malloc(sizeof(VkSurfaceFormatKHR) * 1);
+    VkPresentModeKHR* presentModes = malloc(sizeof(VkPresentModeKHR) * 1);
     
+    
+    uint32_t formatCount;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, NULL);
+    VkSurfaceFormatKHR availableFormats;
+    if (formatCount != 0) {
+        formats = realloc(formats, sizeof(VkSurfaceFormatKHR) * formatCount);
+        VkResult surfaceFormatResult = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, formats);
+        if (surfaceFormatResult != VK_SUCCESS) {
+            printf("Something went wrong...\n");
+            printf("Return code: %u\n", surfaceFormatResult);
+        }
+        else
+        {
+            for (int i = 0; i < formatCount; i++)
+            {
+                if (formats[i].format == VK_FORMAT_B8G8R8A8_SRGB && formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+                {
+                    availableFormats = formats[i];
+                    printf("Format VK_FORMAT_B8G8R8A8_SRGB and colorspace VK_COLOR_SPACE_SRGB_NONLINEAR_KHR found!\n");
+                    break;
+                }
+                
+            }
+        }
+    }
+    
+    uint32_t presentModeCount;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, NULL);
+    VkPresentModeKHR avaiablePresentMode;
+    
+    if (presentModeCount != 0) {
+        presentModes = realloc(presentModes, sizeof(VkPresentModeKHR) * presentModeCount);
+        VkResult surfacePresentModeResult = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes);
+        if (surfacePresentModeResult != VK_SUCCESS) {
+            printf("Something went wrong...\n");
+            printf("Return code: %u\n", surfacePresentModeResult);
+            free(presentModes);
+            return -1;
+        }
+        else
+        {
+            for (int i = 0; i < presentModeCount; i++)
+            {
+                if (presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
+                    avaiablePresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+                    printf("VK_PRESENT_MODE_MAILBOX_KHR present mode selected\n");
+                    break;
+                }
+//                else if(i == presentModeCount && presentModes[i] != VK_PRESENT_MODE_MAILBOX_KHR)
+//                {
+//                    avaiablePresentMode = VK_PRESENT_MODE_FIFO_KHR;
+//                    printf("VK_PRESENT_MODE_FIFO_KHR present mode selected\n");
+//                }
+            }
+            avaiablePresentMode = VK_PRESENT_MODE_FIFO_KHR;
+            printf("VK_PRESENT_MODE_FIFO_KHR present mode selected\n");
+//            avaiablePresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+//            printf("%u\n", avaiablePresentMod);
+        }
+    }
+
+
+//    free memory allocation for formats and presentMode varibles
+    free(formats);
+    free(presentModes);
+    
+    if (capabilities.currentExtent.width != UINT32_MAX)
+    {
+//        printf("capabilities.currentExtent.width : %u\n", capabilities.currentExtent.width);
+//        printf("capabilities.minImageExtent.width : %u\n", capabilities.minImageExtent.width);
+        printf("\ncapabilities.currentExtent.width != UINT32_MAX...\n");
+        printf("Still to check if this is bad...\n\n");
+    }
+    
+//    STEP 5.2:: Setting up the action swap chain functionality
+    VkExtent2D extent = capabilities.currentExtent;
+    
+    uint32_t imageCount = capabilities.minImageCount + 1;
+    
+    if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount)
+    {
+        imageCount = capabilities.maxImageCount;
+    }
+    
+    VkSwapchainCreateInfoKHR createSwapChainInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .surface = surface,
+        .minImageCount = imageCount,
+        .imageFormat = availableFormats.format,
+        .imageColorSpace = availableFormats.colorSpace,
+        .presentMode = avaiablePresentMode,
+        .imageExtent = extent,
+        .imageArrayLayers = 1,
+        .preTransform = capabilities.currentTransform,
+        .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        .clipped = VK_TRUE,
+        .oldSwapchain = VK_NULL_HANDLE
+    };
+    
+//    if (avaiablePresentMode) {
+//        createSwapChainInfo.presentMode = avaiablePresentMode;
+//    }
+//    else
+//    {
+//        createSwapChainInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+//    }
+    
+    uint32_t queueFamilyIndices[] =
+    {
+        graphicsFamilyIndices,
+        presentFamily
+    };
+    
+    if (graphicsFamilyIndices != presentFamily)
+    {
+        printf("Graphics family does not equal present family\n\n");
+        createSwapChainInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+        createSwapChainInfo.queueFamilyIndexCount = 2;
+        createSwapChainInfo.pQueueFamilyIndices = queueFamilyIndices;
+    }
+    else
+    {
+        printf("Graphics family does equal present family\n\n");
+        createSwapChainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        createSwapChainInfo.queueFamilyIndexCount = 0; // Optional
+        createSwapChainInfo.pQueueFamilyIndices = queueFamilyIndices; // Optional
+    }
+    
+    VkSwapchainKHR swapChainKHR;
+    VkResult swapChainCreateResult = vkCreateSwapchainKHR(device, &createSwapChainInfo, NULL, &swapChainKHR);
+    if (swapChainCreateResult != VK_SUCCESS)
+    {
+        printf("failed to create swap chain!\n");
+    }
+    
+    VkImage* swapChainImages = malloc(sizeof(VkImage) * 1);
+    vkGetSwapchainImagesKHR(device, swapChainKHR, &imageCount, NULL);
+//    imageCount = realloc(imageCount, sizeof(imageCount) * imageCount);
+    vkGetSwapchainImagesKHR(device, swapChainKHR, &imageCount, swapChainImages);
+    
+    int swapChainImagesCount = (int) sizeof(swapChainImages) / (int) swapChainImages[0];
+    
+    VkImageView* swapChainImageViews = malloc(sizeof(VkImageView) * swapChainImagesCount);
+    
+//    int swapChainImageViewCount = (int) sizeof(swapChainImageViews) / (int) swapChainImageViews[0];
+    
+   
+    
+    for (int i = 0; i < swapChainImagesCount; i++)
+    {
+        VkImageViewCreateInfo createImageViewInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .image = swapChainImages[i],
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = availableFormats.format,
+            .components.r = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .components.g = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .components.b = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .components.a = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .subresourceRange.baseMipLevel = 0,
+            .subresourceRange.levelCount = 1,
+            .subresourceRange.baseArrayLayer = 0,
+            .subresourceRange.layerCount = 1
+        };
+        
+        
+        if (vkCreateImageView(device, &createImageViewInfo, NULL, &swapChainImageViews[i]) != VK_SUCCESS) {
+            printf("failed to create image views!\n");
+        }
+
+    }
+//    int swapChainImageViewCount = (int) sizeof(swapChainImageViews) / (int) swapChainImageViews[0];
     
     
     
 //    Math library tests
-    mat4x4 matrix;
-    vec4 r;
-    vec4 v;
-    mat4x4_identity(matrix);
-
-    mat4x4_mul_vec4(r, matrix, v);
-    uint32_t veclen = vec4_len(r);
-    printf("Vec4 variable r length: %u \n", veclen);
+//    mat4x4 matrix;
+//    vec4 r;
+//    vec4 v;
+//    mat4x4_identity(matrix);
+//
+//    mat4x4_mul_vec4(r, matrix, v);
+//    uint32_t veclen = vec4_len(r);
+//    printf("Vec4 variable r length: %u \n", veclen);
 
 
 //    Main loop
@@ -294,7 +580,14 @@ int main(void) {
 
     
 //    Program clean up
-    free(queueFamilies);
+    
+    for (int i = 0; i < swapChainImagesCount; i++)
+    {
+        vkDestroyImageView(device, swapChainImageViews[i], NULL);
+    }
+    free(swapChainImageViews);
+    free(swapChainImages);
+    vkDestroySwapchainKHR(device, swapChainKHR, NULL);
     vkDestroyDevice(device, NULL);
     vkDestroySurfaceKHR(instance, surface, NULL);
     vkDestroyInstance(instance, NULL);
