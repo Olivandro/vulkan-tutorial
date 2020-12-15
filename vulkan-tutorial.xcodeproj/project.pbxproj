@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9980910E257AB12000D38F4E /* libshaderc_shared.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 998090F5257AAF4100D38F4E /* libshaderc_shared.1.dylib */; };
+		99809110257AB12000D38F4E /* libspirv-cross-c-shared.0.36.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 99809101257AB03000D38F4E /* libspirv-cross-c-shared.0.36.0.dylib */; };
+		99809112257AB12000D38F4E /* libSPIRV-Tools-shared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 998090FE257AAFE500D38F4E /* libSPIRV-Tools-shared.dylib */; };
 		9994453C2528B82E007B6D82 /* libglfw.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 99E5C0EE2523E8CB0071F105 /* libglfw.3.dylib */; };
 		9994453D2528B82E007B6D82 /* libglfw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9994452E2528B641007B6D82 /* libglfw3.a */; };
 		9994453E2528B867007B6D82 /* libvulkan.1.2.148.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 999445302528B66D007B6D82 /* libvulkan.1.2.148.dylib */; };
@@ -27,9 +30,20 @@
 
 /* Begin PBXFileReference section */
 		99597C4F252927AD00C159CA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		99600DA925778D9000C9C3B0 /* frag.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = frag.spv; sourceTree = "<group>"; };
+		99600DAA25778D9100C9C3B0 /* vert.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = vert.spv; sourceTree = "<group>"; };
+		998090E6257AA58E00D38F4E /* libshaderc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libshaderc.a; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libshaderc.a"; sourceTree = "<group>"; };
+		998090EA257AAC5500D38F4E /* libshaderc_util.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libshaderc_util.a; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libshaderc_util.a"; sourceTree = "<group>"; };
+		998090ED257AAD6E00D38F4E /* libspirv-cross-glsl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross-glsl.a"; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libspirv-cross-glsl.a"; sourceTree = "<group>"; };
+		998090F1257AADCF00D38F4E /* libshaderc_combined.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libshaderc_combined.a; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libshaderc_combined.a"; sourceTree = "<group>"; };
+		998090F5257AAF4100D38F4E /* libshaderc_shared.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libshaderc_shared.1.dylib; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libshaderc_shared.1.dylib"; sourceTree = "<group>"; };
+		998090FE257AAFE500D38F4E /* libSPIRV-Tools-shared.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSPIRV-Tools-shared.dylib"; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libSPIRV-Tools-shared.dylib"; sourceTree = "<group>"; };
+		99809101257AB03000D38F4E /* libspirv-cross-c-shared.0.36.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libspirv-cross-c-shared.0.36.0.dylib"; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libspirv-cross-c-shared.0.36.0.dylib"; sourceTree = "<group>"; };
 		9994452E2528B641007B6D82 /* libglfw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglfw3.a; path = "../glfw-3.3.2.bin.MACOS/lib-macos/libglfw3.a"; sourceTree = "<group>"; };
 		999445302528B66D007B6D82 /* libvulkan.1.2.148.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libvulkan.1.2.148.dylib; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libvulkan.1.2.148.dylib"; sourceTree = "<group>"; };
 		999445362528B761007B6D82 /* linmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = linmath.h; path = ../../../linmath.h/linmath.h; sourceTree = "<group>"; };
+		99A0379925778B9E006BA209 /* shader.vert */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; path = shader.vert; sourceTree = "<group>"; };
+		99A0379A25778BBB006BA209 /* shader.frag */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; path = shader.frag; sourceTree = "<group>"; };
 		99A9D4232528CA91000BCD3C /* libMoltenVK.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMoltenVK.a; path = "../vulkansdk-macos-1.2.148.1/MoltenVK/macOS/static/libMoltenVK.a"; sourceTree = "<group>"; };
 		99A9D4242528CA91000BCD3C /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = "../vulkansdk-macos-1.2.148.1/MoltenVK/macOS/dynamic/libMoltenVK.dylib"; sourceTree = "<group>"; };
 		99C05A532529527A002E0D0C /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
@@ -45,7 +59,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99809112257AB12000D38F4E /* libSPIRV-Tools-shared.dylib in Frameworks */,
 				9994453E2528B867007B6D82 /* libvulkan.1.2.148.dylib in Frameworks */,
+				99809110257AB12000D38F4E /* libspirv-cross-c-shared.0.36.0.dylib in Frameworks */,
+				9980910E257AB12000D38F4E /* libshaderc_shared.1.dylib in Frameworks */,
 				9994453C2528B82E007B6D82 /* libglfw.3.dylib in Frameworks */,
 				9994453D2528B82E007B6D82 /* libglfw3.a in Frameworks */,
 			);
@@ -62,9 +79,20 @@
 			path = dep;
 			sourceTree = "<group>";
 		};
+		99600DAC25778DC000C9C3B0 /* include */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = include;
+			sourceTree = "<group>";
+		};
 		99A0379725770030006BA209 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
+				99600DA925778D9000C9C3B0 /* frag.spv */,
+				99600DAA25778D9100C9C3B0 /* vert.spv */,
+				99A0379925778B9E006BA209 /* shader.vert */,
+				99A0379A25778BBB006BA209 /* shader.frag */,
 			);
 			path = shaders;
 			sourceTree = "<group>";
@@ -89,6 +117,7 @@
 		99E5C0C82523D7410071F105 /* vulkan-tutorial */ = {
 			isa = PBXGroup;
 			children = (
+				99600DAC25778DC000C9C3B0 /* include */,
 				99A0379725770030006BA209 /* shaders */,
 				993BE4212525000000EAF159 /* dep */,
 				99E5C0C92523D7410071F105 /* main.c */,
@@ -102,6 +131,13 @@
 		99E5C0E42523E1020071F105 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				99809101257AB03000D38F4E /* libspirv-cross-c-shared.0.36.0.dylib */,
+				998090FE257AAFE500D38F4E /* libSPIRV-Tools-shared.dylib */,
+				998090F5257AAF4100D38F4E /* libshaderc_shared.1.dylib */,
+				998090F1257AADCF00D38F4E /* libshaderc_combined.a */,
+				998090ED257AAD6E00D38F4E /* libspirv-cross-glsl.a */,
+				998090EA257AAC5500D38F4E /* libshaderc_util.a */,
+				998090E6257AA58E00D38F4E /* libshaderc.a */,
 				99A9D4232528CA91000BCD3C /* libMoltenVK.a */,
 				99A9D4242528CA91000BCD3C /* libMoltenVK.dylib */,
 				999445302528B66D007B6D82 /* libvulkan.1.2.148.dylib */,

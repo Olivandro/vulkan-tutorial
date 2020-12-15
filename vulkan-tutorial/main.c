@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "linmath.h"
+#include <shaderc/shaderc.h>
 
 
 //Check the suitability of a device for use fo Vulkan API
@@ -15,6 +16,28 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
     return true;
 }
 
+VkShaderModule createShaderModule(const char* code, VkDevice device)
+{
+    VkShaderModuleCreateInfo createInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .codeSize = sizeof(code),
+        .pCode = (const uint32_t*) code
+    };
+
+
+    VkShaderModule shaderModule;
+    if (vkCreateShaderModule(device, &createInfo, NULL, &shaderModule) != VK_SUCCESS)
+    {
+        perror("failed to create shader module!\n");
+    }
+    return shaderModule;
+}
+
+
+//Main function
+//TO DO:
+// Abstraction once triangle is done.
 int main(void) {
 // Opening glfw window setup...
     
@@ -50,7 +73,7 @@ int main(void) {
     if (layerCount > 0) {
         VkLayerProperties *instance_layers = malloc(sizeof(VkLayerProperties) * layerCount);
         VkResult instanceResult = vkEnumerateInstanceLayerProperties(&layerCount, instance_layers);
-        printf("Instamce layer enum result: %d\n", instanceResult);
+        printf("Instance layer enum result: %d\n", instanceResult);
         
 //        After retrieving the layers we make sure to have the length of our validationLayers
 //        array for iteration.
@@ -177,7 +200,7 @@ int main(void) {
         }
         if (physicalDevice == VK_NULL_HANDLE)
         {
-            printf("GPU device found is not suitable for Vulkan API");
+            printf("GPU device found is not suitable for Vulkan API\n");
         }
         free(physical_device);
     }
@@ -358,7 +381,7 @@ int main(void) {
 //    deviceCreateinfo.ppEnabledExtensionNames = &deviceExtensions;
 //    free(availableExtension);
     
-//    Botyh moved from different locations....
+//    Both moved from different locations....
 //    if (vkCreateDevice(physicalDevice, &deviceCreateinfo, NULL, &device) != VK_SUCCESS) {
 //        printf("failed to create logical device!\n");
 //    }
@@ -560,8 +583,132 @@ int main(void) {
 //    int swapChainImageViewCount = (int) sizeof(swapChainImageViews) / (int) swapChainImageViews[0];
     
     
+//    After a long arguous process, we are finally at the graphics pipe line!
+//    STEP 6:: Graphics pipeline
     
-//    Math library tests
+//    Shaders (Vertex Shader first)::
+    char vertPath[] =
+                    "#version 450\n"
+                    "#extension GL_ARB_separate_shader_objects : enable\n"
+                    "layout(location = 0) out vec3 fragColor;\n"
+                    "vec2 positions[3] = vec2[](vec2(0.0, -0.5),vec2(0.5, 0.5),vec2(-0.5, 0.5));\n"
+                    "vec3 colors[3] = vec3[](vec3(1.0, 0.0, 0.0),vec3(0.0, 1.0, 0.0),vec3(0.0, 0.0, 1.0));\n"
+                    "void main(){gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);fragColor = colors[gl_VertexIndex];}";
+    
+//    char vertPath[] = "#version 450\nvoid main(){}";
+    
+    shaderc_compiler_t compiler = shaderc_compiler_initialize();
+    
+    shaderc_compilation_result_t compilerVertResult = shaderc_compile_into_spv(compiler, vertPath, sizeof(vertPath) - 1,shaderc_glsl_vertex_shader, "main.vert", "main", NULL);
+    
+         // Do stuff with compilation results.
+    size_t numOfErrors = shaderc_result_get_num_errors(compilerVertResult);
+    if (numOfErrors != 0)
+    {
+        printf("%lu\n", numOfErrors);
+        shaderc_compilation_status compileStatusResults = shaderc_result_get_compilation_status(compilerVertResult);
+        printf("%u\n", compileStatusResults);
+        const char* compilerErrorMessages = shaderc_result_get_error_message(compilerVertResult);
+        printf("Compiler error message: %s\n", compilerErrorMessages);
+        return -1;
+    }
+    
+    
+    size_t compiledVertByteSize = shaderc_result_get_length(compilerVertResult);
+    const char* compiledVertBytes = shaderc_result_get_bytes(compilerVertResult);
+    
+//    Lets create the Vertinfo struct - this
+    VkShaderModuleCreateInfo createVertInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .codeSize = compiledVertByteSize,
+        .pCode = (const uint32_t*) compiledVertBytes
+    };
+//
+//
+    VkShaderModule vertShaderModule;
+    if (vkCreateShaderModule(device, &createVertInfo, NULL, &vertShaderModule) != VK_SUCCESS)
+    {
+        perror("failed to create shader module!\n");
+        return -1;
+    }
+    
+    //    Once we've finished with the Vertex shader compilation and reead. lets release
+//   the result the comiler result to use for the frag shader.
+
+    shaderc_result_release(compilerVertResult);
+    
+    //    Shaders (Vertex Shader first)::
+    char fragPath[] =
+                    "#version 450\n"
+                    "#extension GL_ARB_separate_shader_objects : enable\n"
+                    "layout(location = 0) in vec3 fragColor;\n"
+                    "layout(location = 0) out vec4 outColor;\n"
+                    "void main() {outColor = vec4(fragColor, 1.0);}";
+    
+    
+    shaderc_compilation_result_t compilerFragResult = shaderc_compile_into_spv(compiler, fragPath, sizeof(fragPath) - 1,shaderc_glsl_vertex_shader, "main.frag", "main", NULL);
+    
+    numOfErrors = shaderc_result_get_num_errors(compilerFragResult);
+    if (numOfErrors != 0)
+    {
+        printf("%lu\n", numOfErrors);
+        shaderc_compilation_status compileStatusResults = shaderc_result_get_compilation_status(compilerVertResult);
+        printf("%u\n", compileStatusResults);
+        const char* compilerErrorMessages = shaderc_result_get_error_message(compilerVertResult);
+        printf("Compiler error message: %s\n", compilerErrorMessages);
+        return -1;
+    }
+    
+    size_t compiledFragByteSize = shaderc_result_get_length(compilerFragResult);
+    const char* compiledFragBytes = shaderc_result_get_bytes(compilerFragResult);
+    
+//    Lets create the Vertinfo struct - this
+    VkShaderModuleCreateInfo createFragInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .codeSize = compiledFragByteSize,
+        .pCode = (const uint32_t*) compiledFragBytes
+    };
+//
+//
+    VkShaderModule fragShaderModule;
+    if (vkCreateShaderModule(device, &createFragInfo, NULL, &fragShaderModule) != VK_SUCCESS)
+    {
+        perror("failed to create shader module!\n");
+        return -1;
+    }
+    
+//    Now that we have our frag shader we free the compiled results, and free the compiler itself
+    shaderc_result_release(compilerFragResult);
+    shaderc_compiler_release(compiler);
+    
+    
+    
+//    Lets setup the structs for situating the shaders in the graphics pipline
+    
+    VkPipelineShaderStageCreateInfo vertShaderStageInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+        .module = vertShaderModule,
+        .pName = "main"
+    };
+    
+    
+    VkPipelineShaderStageCreateInfo fragShaderStageInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+        .module = fragShaderModule,
+        .pName = "main"
+    };
+    
+    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+    
+    
+    
+////    Math library tests
 //    mat4x4 matrix;
 //    vec4 r;
 //    vec4 v;
@@ -580,6 +727,10 @@ int main(void) {
 
     
 //    Program clean up
+
+    vkDestroyShaderModule(device, vertShaderModule, NULL);
+    vkDestroyShaderModule(device, fragShaderModule, NULL);
+
     
     for (int i = 0; i < swapChainImagesCount; i++)
     {
