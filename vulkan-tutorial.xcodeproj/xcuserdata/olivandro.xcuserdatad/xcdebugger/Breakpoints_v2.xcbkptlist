@@ -78,8 +78,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "736"
-            endingLineNumber = "736"
+            startingLineNumber = "946"
+            endingLineNumber = "946"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -94,8 +94,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "723"
-            endingLineNumber = "723"
+            startingLineNumber = "919"
+            endingLineNumber = "919"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -112,6 +112,22 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "602"
             endingLineNumber = "602"
+            landmarkName = "main()"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "AF08A124-A479-473F-819D-3C118E9B90A2"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "vulkan-tutorial/main.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "483"
+            endingLineNumber = "483"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>

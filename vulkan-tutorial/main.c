@@ -636,7 +636,7 @@ int main(void) {
     //    Once we've finished with the Vertex shader compilation and reead. lets release
 //   the result the comiler result to use for the frag shader.
 
-    shaderc_result_release(compilerVertResult);
+    
     
     //    Shaders (Vertex Shader first)::
     char fragPath[] =
@@ -647,15 +647,15 @@ int main(void) {
                     "void main() {outColor = vec4(fragColor, 1.0);}";
     
     
-    shaderc_compilation_result_t compilerFragResult = shaderc_compile_into_spv(compiler, fragPath, sizeof(fragPath) - 1,shaderc_glsl_vertex_shader, "main.frag", "main", NULL);
+    shaderc_compilation_result_t compilerFragResult = shaderc_compile_into_spv(compiler, fragPath, sizeof(fragPath) - 1,shaderc_glsl_fragment_shader, "main.frag", "main", NULL);
     
     numOfErrors = shaderc_result_get_num_errors(compilerFragResult);
     if (numOfErrors != 0)
     {
         printf("%lu\n", numOfErrors);
-        shaderc_compilation_status compileStatusResults = shaderc_result_get_compilation_status(compilerVertResult);
+        shaderc_compilation_status compileStatusResults = shaderc_result_get_compilation_status(compilerFragResult);
         printf("%u\n", compileStatusResults);
-        const char* compilerErrorMessages = shaderc_result_get_error_message(compilerVertResult);
+        const char* compilerErrorMessages = shaderc_result_get_error_message(compilerFragResult);
         printf("Compiler error message: %s\n", compilerErrorMessages);
         return -1;
     }
@@ -679,18 +679,13 @@ int main(void) {
         return -1;
     }
     
-//    Now that we have our frag shader we free the compiled results, and free the compiler itself
-    shaderc_result_release(compilerFragResult);
-    shaderc_compiler_release(compiler);
-    
-    
     
 //    Lets setup the structs for situating the shaders in the graphics pipline
     
     VkPipelineShaderStageCreateInfo vertShaderStageInfo =
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+        .stage = VK_SHADER_STAGE_VERTEX_BIT,
         .module = vertShaderModule,
         .pName = "main"
     };
@@ -705,6 +700,207 @@ int main(void) {
     };
     
     VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+    
+    //    Now that we have our frag shader we free the compiled results, and free the compiler itself
+    shaderc_result_release(compilerVertResult);
+    shaderc_result_release(compilerFragResult);
+    shaderc_compiler_release(compiler);
+
+    
+    
+//    Fixing functions
+//    This is the next major step
+    
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+        .vertexBindingDescriptionCount = 0,
+        .pVertexBindingDescriptions = NULL, // Optional
+        .vertexAttributeDescriptionCount = 0,
+        .pVertexAttributeDescriptions = NULL // Optional
+    };
+    
+    VkPipelineInputAssemblyStateCreateInfo inputAssembly =
+    {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        .primitiveRestartEnable = VK_FALSE
+    };
+    
+    VkViewport viewport =
+    {
+        .x = 0.0f,
+        .y = 0.0f,
+        .width = (float) extent.width,
+        .height = (float) extent.height,
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f
+    };
+
+    VkRect2D scissor =
+    {
+        .offset = {0, 0},
+        .extent = extent
+    };
+    
+    VkPipelineViewportStateCreateInfo viewportState =
+    {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+        .viewportCount = 1,
+        .pViewports = &viewport,
+        .scissorCount = 1,
+        .pScissors = &scissor
+    };
+    
+    VkPipelineRasterizationStateCreateInfo rasterizer =
+    {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+        .depthClampEnable = VK_FALSE,
+        .rasterizerDiscardEnable = VK_FALSE,
+        .polygonMode = VK_POLYGON_MODE_FILL,
+        .lineWidth = 1.0f,
+        .cullMode = VK_CULL_MODE_BACK_BIT,
+        .frontFace = VK_FRONT_FACE_CLOCKWISE,
+        .depthBiasEnable = VK_FALSE,
+        .depthBiasConstantFactor = 0.0f, // Optional
+        .depthBiasClamp = 0.0f, // Optional
+        .depthBiasSlopeFactor = 0.0f // Optional
+    };
+    
+    VkPipelineMultisampleStateCreateInfo multisampling =
+    {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+        .sampleShadingEnable = VK_FALSE,
+        .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+        .minSampleShading = 1.0f, // Optional
+        .pSampleMask = NULL, // Optional
+        .alphaToCoverageEnable = VK_FALSE, // Optional
+        .alphaToOneEnable = VK_FALSE // Optional
+    };
+    
+    VkPipelineColorBlendAttachmentState colorBlendAttachment =
+    {
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+        .blendEnable = VK_FALSE,
+        .srcColorBlendFactor = VK_BLEND_FACTOR_ONE, // Optional
+        .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO, // Optional
+        .colorBlendOp = VK_BLEND_OP_ADD, // Optional
+        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE, // Optional
+        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO, // Optional
+        .alphaBlendOp = VK_BLEND_OP_ADD, // Optional
+        .blendEnable = VK_TRUE,
+        .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+        .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
+        .colorBlendOp = VK_BLEND_OP_ADD,
+        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .alphaBlendOp = VK_BLEND_OP_ADD
+    };
+    
+    VkPipelineColorBlendStateCreateInfo colorBlending =
+    {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        .logicOpEnable = VK_FALSE,
+        .logicOp = VK_LOGIC_OP_COPY, // Optional
+        .attachmentCount = 1,
+        .pAttachments = &colorBlendAttachment,
+        .blendConstants[0] = 0.0f, // Optional
+        .blendConstants[1] = 0.0f, // Optional
+        .blendConstants[2] = 0.0f, // Optional
+        .blendConstants[3] = 0.0f // Optional
+    };
+    
+    VkPipelineLayout pipelineLayout;
+    
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .setLayoutCount = 0, // Optional
+        .pSetLayouts = NULL, // Optional
+        .pushConstantRangeCount = 0, // Optional
+        .pPushConstantRanges = NULL // Optional
+    };
+    
+    
+    if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, NULL, &pipelineLayout) != VK_SUCCESS) {
+        printf("failed to create pipeline layout!\n");
+    }
+
+//    This is the rendering pass phase
+//    Next major stage
+    
+    VkFormat VkColourFormat = availableFormats.format;
+    VkAttachmentDescription colorAttachment =
+    {
+        .format = VkColourFormat,
+        .samples = VK_SAMPLE_COUNT_1_BIT,
+        .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+        .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+    };
+        
+    VkAttachmentReference colorAttachmentRef =
+    {
+        .attachment = 0,
+        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+    };
+    
+    VkSubpassDescription subpass =
+    {
+        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &colorAttachmentRef
+    };
+    
+    
+    VkRenderPass renderPass;
+//    VkPipelineLayout renderPipelineLayout;
+    
+    VkRenderPassCreateInfo renderPassInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        .attachmentCount = 1,
+        .pAttachments = &colorAttachment,
+        .subpassCount = 1,
+        .pSubpasses = &subpass
+
+    };
+    
+    if (vkCreateRenderPass(device, &renderPassInfo, NULL, &renderPass) != VK_SUCCESS) {
+        printf("failed to create render pass!\n");
+    }
+    
+    VkGraphicsPipelineCreateInfo graphicsPipelineInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .stageCount = 2,
+        .pStages = shaderStages,
+        .pVertexInputState = &vertexInputInfo,
+        .pInputAssemblyState = &inputAssembly,
+        .pViewportState = &viewportState,
+        .pRasterizationState = &rasterizer,
+        .pMultisampleState = &multisampling,
+        .pDepthStencilState = NULL,
+        .pColorBlendState = &colorBlending,
+        .pDynamicState = NULL,
+        .layout = pipelineLayout,
+        .renderPass = renderPass,
+        .subpass = 0,
+        .basePipelineHandle = VK_NULL_HANDLE,
+        .basePipelineIndex = -1
+    };
+    
+    VkPipeline graphicsPipeline;
+    if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &graphicsPipelineInfo, NULL, &graphicsPipeline) != VK_SUCCESS) {
+        printf("failed to create graphics pipeline!\n");
+    }
+
+
+    
+    
     
     
     
@@ -727,10 +923,24 @@ int main(void) {
 
     
 //    Program clean up
-
+    vkDestroyPipeline(device, graphicsPipeline, NULL);
+//    vkDestroyPipelineLayout(device, pipelineLayout, NULL);
+    
+//    Second pipeline
+//    vkDestroyPipelineLayout(device, renderPipelineLayout, NULL);
+    vkDestroyRenderPass(device, renderPass, NULL);
+    
+//    Initial pipeline
+    vkDestroyPipelineLayout(device, pipelineLayout, NULL);
+    
     vkDestroyShaderModule(device, vertShaderModule, NULL);
     vkDestroyShaderModule(device, fragShaderModule, NULL);
 
+    
+//    //    Now that we have our frag shader we free the compiled results, and free the compiler itself
+//    shaderc_result_release(compilerVertResult);
+//    shaderc_result_release(compilerFragResult);
+//    shaderc_compiler_release(compiler);
     
     for (int i = 0; i < swapChainImagesCount; i++)
     {
