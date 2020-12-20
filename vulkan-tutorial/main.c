@@ -15,31 +15,74 @@ bool isDeviceSuitable(VkPhysicalDevice device) {
     return true;
 }
 
-VkShaderModule createShaderModule(const char* code, VkDevice device)
+void initValidationLayer(const char* validationLayers, const char* instance_validation_layers, const bool enableValidationLayers, VkBool32 foundvalidationLayer, uint32_t layerCount)
 {
-    VkShaderModuleCreateInfo createInfo =
-    {
-        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = sizeof(code),
-        .pCode = (const uint32_t*) code
-    };
-
-
-    VkShaderModule shaderModule;
-    if (vkCreateShaderModule(device, &createInfo, NULL, &shaderModule) != VK_SUCCESS)
-    {
-        perror("failed to create shader module!\n");
-    }
-    return shaderModule;
+    //    Beginning to access and obtain count of validation layers available on system
+    //    If you are using the LunarG SDK use vulkaninfo.app to verify your systems
+    //    Vulkan implemenation.
+        vkEnumerateInstanceLayerProperties(&layerCount, NULL);
+        instance_validation_layers = (const char*)validationLayers;
+        
+    //    If the number of layers is more than 0 we'll create a temp VkLayerProperties struct
+    //    and will give it the memory size of the size of the structs constructor multiplied
+    //    by the number of layers found.
+    //    After that we re-run vkEnumerateInstanceLayerProperties, but this time provide it
+    //    with the VkLayerProperties struct we've just created.
+        if (layerCount > 0) {
+            VkLayerProperties *instance_layers = malloc(sizeof(VkLayerProperties) * layerCount);
+//            can remove this and wrap the vkEnumerateInstanceLayerProperties in a if logincal statement.
+            VkResult instanceResult = vkEnumerateInstanceLayerProperties(&layerCount, instance_layers);
+            if (vkEnumerateInstanceLayerProperties(&layerCount, instance_layers) != VK_SUCCESS)
+            {
+                printf("Enumerated Instance layer properties failed\n");
+                printf("Instance layer enum result: %d\n", instanceResult);
+            }
+            
+    //        After retrieving the layers we make sure to have the length of our validationLayers
+    //        array for iteration.
+            int validationLayersLength = sizeof(&validationLayers) / sizeof(&validationLayers[0]);
+//            printf("Validation Layer Length: %d\n", validationLayersLength);
+            
+    //        At this point we will iterator over our instance_layers struct and compare it
+    //        with strcmp (from the string.h) to see if our validation layer request is
+    //        available on out system (this was done by vkEnumerateInstanceLayerProperties)
+            for (int i = 0; i < validationLayersLength; i++)
+            {
+                foundvalidationLayer = 0;
+                for (int j = 0; j < layerCount; j++) {
+    //                printf("System Validation layer: %s \n", instance_layers[j].layerName);
+                    if (!strcmp(&instance_validation_layers[i], instance_layers[j].layerName))
+                    {
+                        foundvalidationLayer = 1;
+                        break;
+                    }
+                }
+                if (!foundvalidationLayer) {
+                    printf("Cannot find validation layer\n");
+                }
+                else
+                {
+                    printf("Found validation layer: %s\n", &instance_validation_layers[i]);
+                }
+            }
+    //        Always free memory alloaction!!!
+            free(instance_layers);
+        }
+    //    finally we do a basic check to see if a validation layer was found.
+        if (enableValidationLayers && !foundvalidationLayer) {
+            printf("validation layers requested, but not available!\n");
+        }
 }
+
+
 
 
 //Main function
 //TO DO:
 // Abstraction once triangle is done.
 int main(void) {
-// Opening glfw window setup...
     
+// Opening glfw window setup...
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
@@ -47,7 +90,7 @@ int main(void) {
     const uint32_t width = 800;
     const uint32_t height = 600;
     
-
+//    1. Setting up the validation layer for debugging purposes.
 //    Establish validation layer for vulkan
 //    This is a long and arguous process..
     const char* validationLayers = {
@@ -56,96 +99,46 @@ int main(void) {
     const char* instance_validation_layers = NULL;
     const bool enableValidationLayers = true;
     VkBool32 foundvalidationLayer = 0;
-    uint32_t layerCount;
-    
-//    Beginning to access and obtain count of validation layers available on system
-//    If you are using the LunarG SDK use vulkaninfo.app to verify your systems
-//    Vulkan implemenation.
-    vkEnumerateInstanceLayerProperties(&layerCount, NULL);
-    instance_validation_layers = (const char*)validationLayers;
-    
-//    If the number of layers is more than 0 we'll create a temp VkLayerProperties struct
-//    and will give it the memory size of the size of the structs constructor multiplied
-//    by the number of layers found.
-//    After that we re-run vkEnumerateInstanceLayerProperties, but this time provide it
-//    with the VkLayerProperties struct we've just created.
-    if (layerCount > 0) {
-        VkLayerProperties *instance_layers = malloc(sizeof(VkLayerProperties) * layerCount);
-        VkResult instanceResult = vkEnumerateInstanceLayerProperties(&layerCount, instance_layers);
-        printf("Instance layer enum result: %d\n", instanceResult);
-        
-//        After retrieving the layers we make sure to have the length of our validationLayers
-//        array for iteration.
-        int validationLayersLength = sizeof(&validationLayers) / sizeof(&validationLayers[0]);
-        printf("Validation Layer Length: %d\n", validationLayersLength);
-        
-//        At this point we will iterator over our instance_layers struct and compare it
-//        with strcmp (from the string.h) to see if our validation layer request is
-//        available on out system (this was done by vkEnumerateInstanceLayerProperties)
-        for (int i = 0; i < validationLayersLength; i++)
-        {
-            foundvalidationLayer = 0;
-            for (int j = 0; j < layerCount; j++) {
-//                printf("System Validation layer: %s \n", instance_layers[j].layerName);
-                if (!strcmp(&instance_validation_layers[i], instance_layers[j].layerName))
-                {
-                    foundvalidationLayer = 1;
-                    break;
-                }
-            }
-            if (!foundvalidationLayer) {
-                printf("Cannot find validation layer\n");
-            }
-            else
-            {
-                printf("Found validation layer: %s\n", &instance_validation_layers[i]);
-            }
-        }
-//        Always free memory alloaction!!!
-        free(instance_layers);
-    }
-//    finally we do a basic check to see if a validation layer was found.
-    if (enableValidationLayers && !foundvalidationLayer) {
-        printf("validation layers requested, but not available!\n");
-    }
+    uint32_t layerCount = 0;
+ 
+//    Initialise validation layers
+    initValidationLayer(validationLayers, instance_validation_layers, enableValidationLayers, foundvalidationLayer, layerCount);
 
-    
 //    proceed with creating a GLFW window.
     GLFWwindow* window = glfwCreateWindow(width, height, "Vulkan window", NULL, NULL);
     
+
     
-    
-    
+//    2. Initial VK Instance
 //  Vulkan instance setup
     VkInstance instance;
-    
-    const VkApplicationInfo appInfo =
-    {
-        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-        .pNext = NULL,
-        .pApplicationName = "Hello Triangle",
-        .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
-        .pEngineName = "No Engine",
-        .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-        .apiVersion = VK_API_VERSION_1_2
-    };
-    
+    VkApplicationInfo appInfo;
+    VkInstanceCreateInfo createInfo;
     uint32_t glfwExtensionCount = 0;
+    uint32_t extensionCount = 0;
     const char** glfwExtensions;
+    
+    
+    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    appInfo.pNext = NULL;
+    appInfo.pApplicationName = "Hello Triangle";
+    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.pEngineName = "No Engine";
+    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo.apiVersion = VK_API_VERSION_1_2;
+
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
     
     
-    VkInstanceCreateInfo createInfo =
-    {
-        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-        .pNext = NULL,
-        .flags = 0,
-        .pApplicationInfo = &appInfo,
-        .enabledLayerCount = 0,
-        .ppEnabledLayerNames = NULL,
-        .enabledExtensionCount = glfwExtensionCount,
-        .ppEnabledExtensionNames = glfwExtensions
-    };
+    createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    createInfo.pNext = NULL;
+    createInfo.flags = 0;
+    createInfo.pApplicationInfo = &appInfo;
+    createInfo.enabledLayerCount = 0;
+    createInfo.ppEnabledLayerNames = NULL;
+    createInfo.enabledExtensionCount = glfwExtensionCount;
+    createInfo.ppEnabledExtensionNames = glfwExtensions;
+    
         
     if (enableValidationLayers)
     {
@@ -162,7 +155,6 @@ int main(void) {
 
     
 //  Check for number of available extension
-    uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, NULL);
     printf("Number of extensions supported: %d \n", extensionCount);
     
@@ -172,12 +164,12 @@ int main(void) {
     for (int i = 0; i < extensionCount; i++) {
         printf("Extension name: %s \n", instance_extensions[i].extensionName);
     }
-    
 //    free the allocated memory for instance_extensions
     free(instance_extensions);
-
     
-//    STEP 2 ??? : Next major step
+    
+    
+//    3.VkPhysicalDevice lets set up the physical devices our program is runnign on.
 //    Setting up the physical devices
     VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     uint32_t deviceCount = 0;
@@ -189,6 +181,9 @@ int main(void) {
         VkPhysicalDevice* physical_device = malloc(sizeof(VkPhysicalDevice) * deviceCount);
         vkEnumeratePhysicalDevices(instance, &deviceCount, physical_device);
         
+    //    The main device has been detected and varified as suitable for Vulkan API
+    //    This can be an indepth process of reviewing the device and understanding the GPUs
+    //    limitations. For not we just grab the device that is suitable for Vulkan API.
         for (int i = 0; i < deviceCount; i++) {
             if (isDeviceSuitable(*physical_device))
             {
@@ -208,19 +203,16 @@ int main(void) {
         printf("failed to find GPUs with Vulkan support!\n\n");
         return -1;
     }
-//    The main device has been detected and varified as suitable for Vulkan API
-//    This can be an indepth process of reviewing the device and understanding the GPUs
-//    limitations. For not we just grab the device that is suitable for Vulkan API.
+
     
-//    STEP 2.1 :: Queue Family... Whatever that means...!!
+    
+//    4. :: Queue and graphics Family selections.
     // Logic to find queue family indices to populate struct with
 //    Just below are the queue variable
     uint32_t graphicsFamilyIndices = 0;
-//    Dont think I need this...
     uint32_t queueCount = 0;
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, NULL);
-
 
     VkQueueFamilyProperties* queueFamilies = malloc(sizeof(VkQueueFamilyProperties) * queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies);
@@ -244,9 +236,10 @@ int main(void) {
     }
     free(queueFamilies);
 
-//    Currently here in code review....
-//    Looking at this as STEP 3
-//    STEP 3:: Setting up a logical devices to interface with.
+    
+
+//  5 :: Setting up a logical devices to interface with.
+//    This is the main device that is used through out the rest of the program
     VkDevice device;
     
     float queuePriority = 1.0f;
@@ -271,13 +264,13 @@ int main(void) {
         .pQueueCreateInfos = &queueCreateInfo,
         .queueCreateInfoCount = 1,
         .pEnabledFeatures = &deviceFeatures,
-//        .enabledExtensionCount = 0,
         .enabledLayerCount = 1,
         .ppEnabledLayerNames = &validationLayers
     };
     
     
-//    moved components
+//    Here we have to enable the swapchain extension
+//    This has to happen before logical device creation.....
     const char* deviceExtensions =
     {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -289,7 +282,6 @@ int main(void) {
     
     vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &deviceExtensionCount, availableExtension);
   
-//    Have to re-wite this loop, to be slightly better...
     for (int i = 0; i < deviceExtensionCount; i++)
     {
         if (strcmp((const char*) &deviceExtensions, (const char*) &availableExtension[i].extensionName))
@@ -298,25 +290,19 @@ int main(void) {
             printf("%s extension support found\n", deviceExtensions);
             break;
         }
-//        printf("%s\n", availableExtension[i].extensionName);
     }
     
-
-//    This has to happen before logical device creation..... Meaning that device extensions...
-//    i.e. enabling device extensions is essential during STEP 3...
-//    Literally... I hate OOP and this Vulkan tutorial.
     deviceCreateinfo.enabledExtensionCount = 1;
     deviceCreateinfo.ppEnabledExtensionNames = &deviceExtensions;
     free(availableExtension);
-//    END of moved components
-    
-    
+
+//    Creating the logical device.
     if (vkCreateDevice(physicalDevice, &deviceCreateinfo, NULL, &device) != VK_SUCCESS) {
         printf("failed to create logical device!\n");
     }
 
     
-//    STEP 4??:: Next major step
+//    6 :: initialising  the device surface object
 //    Window surface
     
     VkSurfaceKHR surface;
@@ -329,7 +315,6 @@ int main(void) {
     }
     else
         printf("GLFW VK window surface successfully created!\n");
-    
     
     uint32_t presentFamily;
     VkBool32 presentSupport = false;
@@ -347,13 +332,16 @@ int main(void) {
     VkQueue graphicsQueue;
     vkGetDeviceQueue(device, presentFamily, graphicsFamilyIndices, &graphicsQueue);
     
-//    STEP 5.2: We are now checking for compatibilitoes
+//    6.1 : We are now checking for compatibilities we desire and whats possible with the
+//    physicalDevice.
     
     VkSurfaceCapabilitiesKHR capabilities;
     VkResult surfaceCapabilitesResult = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
-    if (surfaceCapabilitesResult != VK_SUCCESS) {
+    if (surfaceCapabilitesResult != VK_SUCCESS)
+    {
         printf("Surface capabilities initialisation failed.\n");
         printf("return code: %u\n", surfaceCapabilitesResult);
+        return -1;
     }
     
 //    Initial these two VK structs...
@@ -364,7 +352,6 @@ int main(void) {
     VkSurfaceFormatKHR* formats = malloc(sizeof(VkSurfaceFormatKHR) * 1);
     VkPresentModeKHR* presentModes = malloc(sizeof(VkPresentModeKHR) * 1);
     
-    
     uint32_t formatCount;
     vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, NULL);
     VkSurfaceFormatKHR availableFormats;
@@ -374,6 +361,10 @@ int main(void) {
         if (surfaceFormatResult != VK_SUCCESS) {
             printf("Something went wrong...\n");
             printf("Return code: %u\n", surfaceFormatResult);
+            
+            free(formats);
+            free(presentModes);
+            return -1;
         }
         else
         {
@@ -390,7 +381,7 @@ int main(void) {
         }
     }
     
-    uint32_t presentModeCount;
+    uint32_t presentModeCount = 0;
     vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, NULL);
     VkPresentModeKHR avaiablePresentMode;
     
@@ -412,17 +403,21 @@ int main(void) {
                     printf("VK_PRESENT_MODE_MAILBOX_KHR present mode selected\n");
                     break;
                 }
-//                else if(i == presentModeCount && presentModes[i] != VK_PRESENT_MODE_MAILBOX_KHR)
-//                {
-//                    avaiablePresentMode = VK_PRESENT_MODE_FIFO_KHR;
-//                    printf("VK_PRESENT_MODE_FIFO_KHR present mode selected\n");
-//                }
+
             }
             avaiablePresentMode = VK_PRESENT_MODE_FIFO_KHR;
             printf("VK_PRESENT_MODE_FIFO_KHR present mode selected\n");
 //            avaiablePresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
 //            printf("%u\n", avaiablePresentMod);
         }
+    }
+    else
+    {
+        printf("Your system might not be Vulkan compatible, please double check your system.\n");
+        
+        free(formats);
+        free(presentModes);
+        return -1;
     }
 
 
@@ -432,13 +427,12 @@ int main(void) {
     
     if (capabilities.currentExtent.width != UINT32_MAX)
     {
-//        printf("capabilities.currentExtent.width : %u\n", capabilities.currentExtent.width);
-//        printf("capabilities.minImageExtent.width : %u\n", capabilities.minImageExtent.width);
         printf("\ncapabilities.currentExtent.width != UINT32_MAX...\n");
         printf("Still to check if this is bad...\n\n");
     }
     
-//    STEP 5.2:: Setting up the action swap chain functionality
+//    STEP 6.2:: Setting up the action swap chain functionality
+//    Remember we initialised this extension before in step 5.
     VkExtent2D extent = capabilities.currentExtent;
     
     uint32_t imageCount = capabilities.minImageCount + 1;
@@ -464,14 +458,6 @@ int main(void) {
         .clipped = VK_TRUE,
         .oldSwapchain = VK_NULL_HANDLE
     };
-    
-//    if (avaiablePresentMode) {
-//        createSwapChainInfo.presentMode = avaiablePresentMode;
-//    }
-//    else
-//    {
-//        createSwapChainInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
-//    }
     
     uint32_t queueFamilyIndices[] =
     {
@@ -499,20 +485,15 @@ int main(void) {
     if (swapChainCreateResult != VK_SUCCESS)
     {
         printf("failed to create swap chain!\n");
+        return -1;
     }
     
     VkImage* swapChainImages = malloc(sizeof(VkImage) * 1);
     vkGetSwapchainImagesKHR(device, swapChainKHR, &imageCount, NULL);
-//    imageCount = realloc(imageCount, sizeof(imageCount) * imageCount);
     vkGetSwapchainImagesKHR(device, swapChainKHR, &imageCount, swapChainImages);
-    
     int swapChainImagesCount = (int) sizeof(swapChainImages) / (int) swapChainImages[0];
-    
     VkImageView* swapChainImageViews = malloc(sizeof(VkImageView) * swapChainImagesCount);
     
-//    int swapChainImageViewCount = (int) sizeof(swapChainImageViews) / (int) swapChainImageViews[0];
-    
-   
     
     for (int i = 0; i < swapChainImagesCount; i++)
     {
@@ -539,13 +520,14 @@ int main(void) {
         }
 
     }
-//    int swapChainImageViewCount = (int) sizeof(swapChainImageViews) / (int) swapChainImageViews[0];
     
     
+
+//    7 :: Graphics pipeline
 //    After a long arguous process, we are finally at the graphics pipe line!
-//    STEP 6:: Graphics pipeline
-    
-//    Shaders (Vertex Shader first)::
+
+//    7.1 : Shaders (Vertex Shader first)::
+//    To Do: Abstract this fundtion
     char vertPath[] =
                     "#version 450\n"
                     "#extension GL_ARB_separate_shader_objects : enable\n"
@@ -554,7 +536,6 @@ int main(void) {
                     "vec3 colors[3] = vec3[](vec3(1.0, 0.0, 0.0),vec3(0.0, 1.0, 0.0),vec3(0.0, 0.0, 1.0));\n"
                     "void main(){gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);fragColor = colors[gl_VertexIndex];}";
     
-//    char vertPath[] = "#version 450\nvoid main(){}";
     
     shaderc_compiler_t compiler = shaderc_compiler_initialize();
     
@@ -592,12 +573,8 @@ int main(void) {
         return -1;
     }
     
-    //    Once we've finished with the Vertex shader compilation and reead. lets release
-//   the result the comiler result to use for the frag shader.
-
     
-    
-    //    Shaders (Vertex Shader first)::
+//    Shaders (Vertex Shader first)::
     char fragPath[] =
                     "#version 450\n"
                     "#extension GL_ARB_separate_shader_objects : enable\n"
@@ -660,15 +637,17 @@ int main(void) {
     
     VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
     
-    //    Now that we have our frag shader we free the compiled results, and free the compiler itself
+//    Now that we have our frag shader we free the compiled results, and free the compiler itself
     shaderc_result_release(compilerVertResult);
     shaderc_result_release(compilerFragResult);
     shaderc_compiler_release(compiler);
 
     
-    
-//    Fixing functions
+
+//    7.2 : Fixing functions
 //    This is the next major step
+//    In Vulkan you have to be explicit about everything, from viewport size to color blending function.
+    
     VkPipelineVertexInputStateCreateInfo vertexInputInfo =
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -761,6 +740,8 @@ int main(void) {
         .blendConstants[3] = 0.0f // Optional
     };
     
+    
+// 7.3 : Creating the graphics pipeline
     VkPipelineLayout pipelineLayout;
     
     VkPipelineLayoutCreateInfo pipelineLayoutInfo =
@@ -777,7 +758,7 @@ int main(void) {
         printf("failed to create pipeline layout!\n");
     }
 
-//    This is the rendering pass phase
+//    7.4 : Creating the rendering pass
 //    Next major stage
     
     VkFormat VkColourFormat = availableFormats.format;
@@ -835,6 +816,7 @@ int main(void) {
     
     if (vkCreateRenderPass(device, &renderPassInfo, NULL, &renderPass) != VK_SUCCESS) {
         printf("failed to create render pass!\n");
+        return -1;
     }
     
     VkGraphicsPipelineCreateInfo graphicsPipelineInfo =
@@ -860,11 +842,12 @@ int main(void) {
     VkPipeline graphicsPipeline;
     if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &graphicsPipelineInfo, NULL, &graphicsPipeline) != VK_SUCCESS) {
         printf("failed to create graphics pipeline!\n");
+        return -1;
     }
 
 
-//    Lets do the fun bits now!!
-//    Creating the frame buffer!!
+//    8 : setting up the command buffer and frame buffers plue the render
+//    pass command pool
     VkFramebuffer* swapChainFramebuffers = malloc(sizeof(VkFramebuffer) * swapChainImagesCount);
     
     for (int i = 0; i < swapChainImagesCount; i++)
@@ -888,6 +871,8 @@ int main(void) {
 
         if (vkCreateFramebuffer(device, &framebufferInfo, NULL, &swapChainFramebuffers[i]) != VK_SUCCESS) {
             printf("failed to create framebuffer!\n");
+            free(swapChainFramebuffers);
+            return -1;
         }
     }
     
@@ -904,6 +889,8 @@ int main(void) {
     
     if (vkCreateCommandPool(device, &poolInfo, NULL, &commandPool) != VK_SUCCESS) {
         printf("failed to create command pool!\n");
+        free(swapChainFramebuffers);
+        return -1;
     }
 
     
@@ -915,15 +902,17 @@ int main(void) {
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .commandPool = commandPool,
         .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-        .commandBufferCount = (uint32_t) sizeof(commandBuffers)
+        .commandBufferCount = (uint32_t) sizeof(commandBuffers) 
     };
     
 
     if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers) != VK_SUCCESS) {
         printf("failed to allocate command buffers!\n");
+        
+        free(commandBuffers);
+        free(swapChainFramebuffers);
         return -1;
     }
-    
     
 //    Starting the command buffer recording
     int commandBufferSize = (int) sizeof(commandBuffers) / sizeof(commandBuffers[0]);
@@ -941,6 +930,10 @@ int main(void) {
 
        if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
            printf("failed to begin recording command buffer!\n");
+           
+           free(commandBuffers);
+           free(swapChainFramebuffers);
+           return -1;
        }
         
         VkRenderPassBeginInfo renderPassInfo =
@@ -966,12 +959,17 @@ int main(void) {
         
         if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
             printf("failed to record command buffer!\n");
+            
+            free(commandBuffers);
+            free(swapChainFramebuffers);
+            return -1;
         }
        
     }
     
-//    Finally here!!! Rendering and presentation :)
-    
+
+
+//  9 : rasterisation and Presentation of the triangle that we are drawing
     const int MAX_FRAMES_IN_FLIGHT = 2;
     size_t currentFrame = 0;
     
@@ -979,13 +977,12 @@ int main(void) {
     VkSemaphore* renderFinishedSemaphore = malloc(sizeof(VkSemaphore) * MAX_FRAMES_IN_FLIGHT);
     VkFence* inFlightFences = malloc(sizeof(VkFence) * MAX_FRAMES_IN_FLIGHT);
     VkFence* imagesInFlight = malloc(sizeof(VkFence) * swapChainImagesCount);
-//    memset(imagesInFlight, VK_NULL_HANDLE, swapChainImagesCount);
+//    We have to iterate of imageInFlight to set it up with NULL in each array position
     for (int i = 0; i < swapChainImagesCount; i++)
     {
         imagesInFlight[i] = VK_NULL_HANDLE;
     }
         
-    
     VkSemaphoreCreateInfo semaphoreInfo =
     {
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
@@ -1005,30 +1002,33 @@ int main(void) {
             vkCreateFence(device, &fenceInfo, NULL, &inFlightFences[i]) != VK_SUCCESS ) {
 
             printf("failed to create synchronization objects for a frame!\n");
+            
+            free(commandBuffers);
+            free(swapChainFramebuffers);
+            free(imageAvailableSemaphore);
+            free(renderFinishedSemaphore);
+            free(inFlightFences);
+            free(imagesInFlight);
             return -1;
         }
     }
     
     
-    
-
 
 
 //    Main loop
+//        This is the game loops
     while(!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
         
-        
-//        In the tutorial I believe this is completely abstracted as a single void function...
-//        Don't really like the abstraction in the tutorial... To many files.
+//        We tell our program to wait for the fence that we set up in section 9.
         vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-        
-        
         
         uint32_t imageIndex;
         vkAcquireNextImageKHR(device, swapChainKHR, UINT64_MAX, imageAvailableSemaphore[currentFrame], VK_NULL_HANDLE, &imageIndex);
     
+//        We have to make sure that these two values are equal for it'll crash the progarm
         if (currentFrame == imageIndex)
         {
             if (imagesInFlight[imageIndex] != VK_NULL_HANDLE)
@@ -1037,10 +1037,9 @@ int main(void) {
             }
         }
         
-//            // Mark the image as now being in use by this frame
+//      Mark the image as now being in use by this frame
         imagesInFlight[imageIndex] = inFlightFences[currentFrame];
         
-
         VkSubmitInfo submitInfo =
         {
             .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -1090,12 +1089,12 @@ int main(void) {
     
     if (vkDeviceWaitIdle(device) == VK_SUCCESS)
     {
-        //    Program clean up
-        //    Will need to figure out how to abstract this effectively
-        //    for (int i = 0; i < swapChainImagesCount; i++)
-        //    {
-        //        vkDestroyFence(device, imagesInFlight[i], NULL);
-        //    }
+//            Program clean up
+//            Will need to figure out how to abstract this effectively
+//            for (int i = 0; i < swapChainImagesCount; i++)
+//            {
+//                vkDestroyFence(device, imagesInFlight[i], NULL);
+//            }
             free(imagesInFlight);
             
             for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -1154,11 +1153,6 @@ int main(void) {
     }
     else
         return -1;
-    
-    
-    
-
-    
     
     return 0;
 }
