@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "linmath.h"
 #include <shaderc/shaderc.h>
 
 
@@ -348,46 +347,6 @@ int main(void) {
     VkQueue graphicsQueue;
     vkGetDeviceQueue(device, presentFamily, graphicsFamilyIndices, &graphicsQueue);
     
-//    STEP 5:: Sway change and looking to see if we have support
-//    First thing is to see if we have swap chain support.
-//    const char* deviceExtensions =
-//    {
-//        VK_KHR_SWAPCHAIN_EXTENSION_NAME
-//    };
-//
-//    uint32_t deviceExtensionCount;
-//    vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &deviceExtensionCount, NULL);
-//    VkExtensionProperties* availableExtension = malloc(sizeof(VkExtensionProperties) * deviceExtensionCount);
-//
-//    vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &deviceExtensionCount, availableExtension);
-//
-////    Have to re-wite this loop, to be slightly better...
-//    for (int i = 0; i < deviceExtensionCount; i++)
-//    {
-//        if (strcmp((const char*) &deviceExtensions, (const char*) &availableExtension[i].extensionName))
-//        {
-////            we can be even more efficient with this by creating a bool value rtn for found divice extensions *
-//            printf("%s extension support found\n", deviceExtensions);
-//            break;
-//        }
-////        printf("%s\n", availableExtension[i].extensionName);
-//    }
-//
-//
-////    This has to happen before logical device creation..... Meaning that device extensions...
-////    i.e. enabling device extensions is essential during STEP 3...
-////    Literally... I hate OOP and this Vulkan tutorial.
-//    deviceCreateinfo.enabledExtensionCount = ((uint32_t) sizeof(deviceExtensions));
-//    deviceCreateinfo.ppEnabledExtensionNames = &deviceExtensions;
-//    free(availableExtension);
-    
-//    Both moved from different locations....
-//    if (vkCreateDevice(physicalDevice, &deviceCreateinfo, NULL, &device) != VK_SUCCESS) {
-//        printf("failed to create logical device!\n");
-//    }
-//    vkGetDeviceQueue(device, presentFamily, graphicsFamilyIndices, &graphicsQueue);
-//    END OF MOVED COMPONENTS
-    
 //    STEP 5.2: We are now checking for compatibilitoes
     
     VkSurfaceCapabilitiesKHR capabilities;
@@ -529,7 +488,7 @@ int main(void) {
     }
     else
     {
-        printf("Graphics family does equal present family\n\n");
+        printf("Graphics family equal present family\n\n");
         createSwapChainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
         createSwapChainInfo.queueFamilyIndexCount = 0; // Optional
         createSwapChainInfo.pQueueFamilyIndices = queueFamilyIndices; // Optional
@@ -710,7 +669,6 @@ int main(void) {
     
 //    Fixing functions
 //    This is the next major step
-    
     VkPipelineVertexInputStateCreateInfo vertexInputInfo =
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
@@ -787,14 +745,7 @@ int main(void) {
         .colorBlendOp = VK_BLEND_OP_ADD, // Optional
         .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE, // Optional
         .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO, // Optional
-        .alphaBlendOp = VK_BLEND_OP_ADD, // Optional
-        .blendEnable = VK_TRUE,
-        .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
-        .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-        .colorBlendOp = VK_BLEND_OP_ADD,
-        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-        .alphaBlendOp = VK_BLEND_OP_ADD
+        .alphaBlendOp = VK_BLEND_OP_ADD // Optional
     };
     
     VkPipelineColorBlendStateCreateInfo colorBlending =
@@ -869,6 +820,19 @@ int main(void) {
 
     };
     
+    VkSubpassDependency dependency =
+    {
+        .srcSubpass = VK_SUBPASS_EXTERNAL,
+        .dstSubpass = 0,
+        .srcAccessMask = 0,
+        .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+    };
+    
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &dependency;
+    
     if (vkCreateRenderPass(device, &renderPassInfo, NULL, &renderPass) != VK_SUCCESS) {
         printf("failed to create render pass!\n");
     }
@@ -899,61 +863,301 @@ int main(void) {
     }
 
 
+//    Lets do the fun bits now!!
+//    Creating the frame buffer!!
+    VkFramebuffer* swapChainFramebuffers = malloc(sizeof(VkFramebuffer) * swapChainImagesCount);
+    
+    for (int i = 0; i < swapChainImagesCount; i++)
+    {
+        VkImageView attachments[] =
+        {
+            swapChainImageViews[i]
+        };
+
+        VkFramebufferCreateInfo framebufferInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+            .renderPass = renderPass,
+            .attachmentCount = 1,
+            .pAttachments = attachments,
+            .width = extent.width,
+            .height = extent.height,
+            .layers = 1
+        };
+
+
+        if (vkCreateFramebuffer(device, &framebufferInfo, NULL, &swapChainFramebuffers[i]) != VK_SUCCESS) {
+            printf("failed to create framebuffer!\n");
+        }
+    }
+    
+//    Lets create the commandpool now..
+//    What the command pool exactly is.. to find out
+    VkCommandPool commandPool;
+    
+    VkCommandPoolCreateInfo poolInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+        .queueFamilyIndex = presentFamily,
+        .flags = 0 // Optional
+    };
+    
+    if (vkCreateCommandPool(device, &poolInfo, NULL, &commandPool) != VK_SUCCESS) {
+        printf("failed to create command pool!\n");
+    }
+
+    
+//    Creating the command buffer
+    VkCommandBuffer* commandBuffers = malloc(sizeof(VkCommandBuffer) * swapChainImagesCount);
+    
+    VkCommandBufferAllocateInfo allocInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .commandPool = commandPool,
+        .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+        .commandBufferCount = (uint32_t) sizeof(commandBuffers)
+    };
+    
+
+    if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers) != VK_SUCCESS) {
+        printf("failed to allocate command buffers!\n");
+        return -1;
+    }
+    
+    
+//    Starting the command buffer recording
+    int commandBufferSize = (int) sizeof(commandBuffers) / sizeof(commandBuffers[0]);
+    
+    
+    for (int i = 0; i < commandBufferSize; i++)
+    {
+        VkCommandBufferBeginInfo beginInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+            .flags = 0, // Optional
+            .pInheritanceInfo = NULL // Optional
+        };
+          
+
+       if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
+           printf("failed to begin recording command buffer!\n");
+       }
+        
+        VkRenderPassBeginInfo renderPassInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+            .renderPass = renderPass,
+            .framebuffer = swapChainFramebuffers[i],
+            .renderArea.offset = {0, 0},
+            .renderArea.extent = extent
+        };
+        
+        VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+        
+        renderPassInfo.clearValueCount = 1;
+        renderPassInfo.pClearValues = &clearColor;
+        
+        vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+        
+        vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);
+        
+        vkCmdEndRenderPass(commandBuffers[i]);
+        
+        if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
+            printf("failed to record command buffer!\n");
+        }
+       
+    }
+    
+//    Finally here!!! Rendering and presentation :)
+    
+    const int MAX_FRAMES_IN_FLIGHT = 2;
+    size_t currentFrame = 0;
+    
+    VkSemaphore* imageAvailableSemaphore = malloc(sizeof(VkSemaphore) * MAX_FRAMES_IN_FLIGHT);
+    VkSemaphore* renderFinishedSemaphore = malloc(sizeof(VkSemaphore) * MAX_FRAMES_IN_FLIGHT);
+    VkFence* inFlightFences = malloc(sizeof(VkFence) * MAX_FRAMES_IN_FLIGHT);
+    VkFence* imagesInFlight = malloc(sizeof(VkFence) * swapChainImagesCount);
+//    memset(imagesInFlight, VK_NULL_HANDLE, swapChainImagesCount);
+    for (int i = 0; i < swapChainImagesCount; i++)
+    {
+        imagesInFlight[i] = VK_NULL_HANDLE;
+    }
+        
+    
+    VkSemaphoreCreateInfo semaphoreInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
+    };
+    
+    VkFenceCreateInfo fenceInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        .flags = VK_FENCE_CREATE_SIGNALED_BIT
+    };
+      
+    
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        if (vkCreateSemaphore(device, &semaphoreInfo, NULL, &imageAvailableSemaphore[i]) != VK_SUCCESS ||
+            vkCreateSemaphore(device, &semaphoreInfo, NULL, &renderFinishedSemaphore[i]) != VK_SUCCESS ||
+            vkCreateFence(device, &fenceInfo, NULL, &inFlightFences[i]) != VK_SUCCESS ) {
+
+            printf("failed to create synchronization objects for a frame!\n");
+            return -1;
+        }
+    }
     
     
     
-    
-    
-////    Math library tests
-//    mat4x4 matrix;
-//    vec4 r;
-//    vec4 v;
-//    mat4x4_identity(matrix);
-//
-//    mat4x4_mul_vec4(r, matrix, v);
-//    uint32_t veclen = vec4_len(r);
-//    printf("Vec4 variable r length: %u \n", veclen);
+
 
 
 //    Main loop
     while(!glfwWindowShouldClose(window))
     {
-            glfwPollEvents();
+        glfwPollEvents();
+        
+        
+//        In the tutorial I believe this is completely abstracted as a single void function...
+//        Don't really like the abstraction in the tutorial... To many files.
+        vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+        
+        
+        
+        uint32_t imageIndex;
+        vkAcquireNextImageKHR(device, swapChainKHR, UINT64_MAX, imageAvailableSemaphore[currentFrame], VK_NULL_HANDLE, &imageIndex);
+    
+        if (currentFrame == imageIndex)
+        {
+            if (imagesInFlight[imageIndex] != VK_NULL_HANDLE)
+            {
+                vkWaitForFences(device, 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
+            }
+        }
+        
+//            // Mark the image as now being in use by this frame
+        imagesInFlight[imageIndex] = inFlightFences[currentFrame];
+        
+
+        VkSubmitInfo submitInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+            .waitSemaphoreCount = 1,
+            .commandBufferCount = 1,
+            .signalSemaphoreCount = 1
+            
+        };
+        
+        VkSemaphore waitSemaphores[] = {imageAvailableSemaphore[currentFrame]};
+        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitDstStageMask = waitStages;
+        submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+
+        VkSemaphore signalSemaphores[] = {renderFinishedSemaphore[currentFrame]};
+        submitInfo.pSignalSemaphores = signalSemaphores;
+        
+        vkResetFences(device, 1, &inFlightFences[currentFrame]);
+        
+        if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
+            printf("failed to submit draw command buffer!\n");
+//            return -1;
+        }
+
+        VkPresentInfoKHR presentInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+            .waitSemaphoreCount = 1,
+            .pWaitSemaphores = signalSemaphores
+        };
+        
+
+        VkSwapchainKHR swapChains[] = {swapChainKHR};
+        
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = swapChains;
+        presentInfo.pImageIndices = &imageIndex;
+        presentInfo.pResults = NULL; // Optional
+        
+        vkQueuePresentKHR(graphicsQueue, &presentInfo);
+//        vkQueueWaitIdle(graphicsQueue);
+        
+        currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
     
-//    Program clean up
-    vkDestroyPipeline(device, graphicsPipeline, NULL);
-//    vkDestroyPipelineLayout(device, pipelineLayout, NULL);
-    
-//    Second pipeline
-//    vkDestroyPipelineLayout(device, renderPipelineLayout, NULL);
-    vkDestroyRenderPass(device, renderPass, NULL);
-    
-//    Initial pipeline
-    vkDestroyPipelineLayout(device, pipelineLayout, NULL);
-    
-    vkDestroyShaderModule(device, vertShaderModule, NULL);
-    vkDestroyShaderModule(device, fragShaderModule, NULL);
-
-    
-//    //    Now that we have our frag shader we free the compiled results, and free the compiler itself
-//    shaderc_result_release(compilerVertResult);
-//    shaderc_result_release(compilerFragResult);
-//    shaderc_compiler_release(compiler);
-    
-    for (int i = 0; i < swapChainImagesCount; i++)
+    if (vkDeviceWaitIdle(device) == VK_SUCCESS)
     {
-        vkDestroyImageView(device, swapChainImageViews[i], NULL);
+        //    Program clean up
+        //    Will need to figure out how to abstract this effectively
+        //    for (int i = 0; i < swapChainImagesCount; i++)
+        //    {
+        //        vkDestroyFence(device, imagesInFlight[i], NULL);
+        //    }
+            free(imagesInFlight);
+            
+            for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+            {
+                vkDestroySemaphore(device, renderFinishedSemaphore[i], NULL);
+                vkDestroySemaphore(device, imageAvailableSemaphore[i], NULL);
+                vkDestroyFence(device, inFlightFences[i], NULL);
+            }
+            free(imageAvailableSemaphore);
+            free(renderFinishedSemaphore);
+            free(inFlightFences);
+            
+             
+
+        //    Cleanup for commandpool
+            vkDestroyCommandPool(device, commandPool, NULL);
+            free(commandBuffers);
+            
+            
+        //    Lets clear out all the Framebuffers
+        //    We have to run it through a for loop to delete all the nested buffer we created earlier
+        //    similar to the swap chain images just below.
+            for (int i = 0; i < swapChainImagesCount; i++)
+            {
+                vkDestroyFramebuffer(device, swapChainFramebuffers[i], NULL);
+            }
+            free(swapChainFramebuffers);
+            
+        //    Graphics render pass pipeline creation
+            vkDestroyPipeline(device, graphicsPipeline, NULL);
+            
+        //    Second pipeline
+        //    vkDestroyPipelineLayout(device, renderPipelineLayout, NULL);
+            vkDestroyRenderPass(device, renderPass, NULL);
+            
+        //    Initial pipeline
+            vkDestroyPipelineLayout(device, pipelineLayout, NULL);
+            
+            vkDestroyShaderModule(device, vertShaderModule, NULL);
+            vkDestroyShaderModule(device, fragShaderModule, NULL);
+            
+            
+            
+            for (int i = 0; i < swapChainImagesCount; i++)
+            {
+                vkDestroyImageView(device, swapChainImageViews[i], NULL);
+            }
+            free(swapChainImageViews);
+            free(swapChainImages);
+            vkDestroySwapchainKHR(device, swapChainKHR, NULL);
+            vkDestroyDevice(device, NULL);
+            vkDestroySurfaceKHR(instance, surface, NULL);
+            vkDestroyInstance(instance, NULL);
+            glfwDestroyWindow(window);
+            glfwTerminate();
     }
-    free(swapChainImageViews);
-    free(swapChainImages);
-    vkDestroySwapchainKHR(device, swapChainKHR, NULL);
-    vkDestroyDevice(device, NULL);
-    vkDestroySurfaceKHR(instance, surface, NULL);
-    vkDestroyInstance(instance, NULL);
-    glfwDestroyWindow(window);
-    glfwTerminate();
+    else
+        return -1;
+    
+    
+    
+
     
     
     return 0;
