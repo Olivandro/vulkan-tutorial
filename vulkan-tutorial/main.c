@@ -7,22 +7,52 @@
 #include <stdbool.h>
 #include <shaderc/shaderc.h>
 
+#define ENABLE_VALIDATION_LAYERS true
+#define APP_NAME "Hello Triangle"
+#define ENGINE_NAME "No Engine"
+#define WINDOW_NAME "Vulkan window"
 
-//Check the suitability of a device for use fo Vulkan API
-// This can be a very indepth function, however atm we just look to see if a
-//suitable device was found.
-bool isDeviceSuitable(VkPhysicalDevice device) {
-    return true;
-}
-
-void initValidationLayer(const char* validationLayers, const char* instance_validation_layers, const bool enableValidationLayers, VkBool32 foundvalidationLayer, uint32_t layerCount)
+/**
+ Global Variables
+ */
+static const char* validationLayers =
 {
+    "VK_LAYER_KHRONOS_validation"
+};
+
+/**
+ Stuct constructors
+ */
+struct graphicsFamiliesAnIndices
+{
+    uint32_t graphicsFamilyIndices;
+    uint32_t queueCount;
+    uint32_t presentFamily;
+    uint32_t queueFamilyIndices[2];
+    
+} graphicsFamiliesAnIndices;
+
+
+struct availablePresentsAnFormats
+{
+    VkSurfaceFormatKHR availableFormats;
+    VkPresentModeKHR avaiablePresentMode;
+    
+} availablePresentsAnFormats;
+
+/**
+    Program functions
+ */
+void initValidationLayer(const char* validationLayers, const char* instance_validation_layers)
+{
+        VkBool32 foundvalidationLayer = 0;
+        uint32_t layerCount = 0;
     //    Beginning to access and obtain count of validation layers available on system
     //    If you are using the LunarG SDK use vulkaninfo.app to verify your systems
     //    Vulkan implemenation.
         vkEnumerateInstanceLayerProperties(&layerCount, NULL);
         instance_validation_layers = (const char*)validationLayers;
-        
+    
     //    If the number of layers is more than 0 we'll create a temp VkLayerProperties struct
     //    and will give it the memory size of the size of the structs constructor multiplied
     //    by the number of layers found.
@@ -32,8 +62,10 @@ void initValidationLayer(const char* validationLayers, const char* instance_vali
             VkLayerProperties *instance_layers = malloc(sizeof(VkLayerProperties) * layerCount);
 //            can remove this and wrap the vkEnumerateInstanceLayerProperties in a if logincal statement.
             VkResult instanceResult = vkEnumerateInstanceLayerProperties(&layerCount, instance_layers);
-            if (vkEnumerateInstanceLayerProperties(&layerCount, instance_layers) != VK_SUCCESS)
+            if (instanceResult != VK_SUCCESS)
             {
+//                COULD DO:
+//                Develop switch statement that runs through all the warnings and makes it easier to debug
                 printf("Enumerated Instance layer properties failed\n");
                 printf("Instance layer enum result: %d\n", instanceResult);
             }
@@ -41,7 +73,6 @@ void initValidationLayer(const char* validationLayers, const char* instance_vali
     //        After retrieving the layers we make sure to have the length of our validationLayers
     //        array for iteration.
             int validationLayersLength = sizeof(&validationLayers) / sizeof(&validationLayers[0]);
-//            printf("Validation Layer Length: %d\n", validationLayersLength);
             
     //        At this point we will iterator over our instance_layers struct and compare it
     //        with strcmp (from the string.h) to see if our validation layer request is
@@ -69,66 +100,33 @@ void initValidationLayer(const char* validationLayers, const char* instance_vali
             free(instance_layers);
         }
     //    finally we do a basic check to see if a validation layer was found.
-        if (enableValidationLayers && !foundvalidationLayer) {
+        if (ENABLE_VALIDATION_LAYERS && !foundvalidationLayer) {
             printf("validation layers requested, but not available!\n");
         }
 }
 
 
-
-
-//Main function
-//TO DO:
-// Abstraction once triangle is done.
-int main(void) {
-    
-// Opening glfw window setup...
-    glfwInit();
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-    
-    const uint32_t width = 800;
-    const uint32_t height = 600;
-    
-//    1. Setting up the validation layer for debugging purposes.
-//    Establish validation layer for vulkan
-//    This is a long and arguous process..
-    const char* validationLayers = {
-        "VK_LAYER_KHRONOS_validation"
-    };
-    const char* instance_validation_layers = NULL;
-    const bool enableValidationLayers = true;
-    VkBool32 foundvalidationLayer = 0;
-    uint32_t layerCount = 0;
- 
-//    Initialise validation layers
-    initValidationLayer(validationLayers, instance_validation_layers, enableValidationLayers, foundvalidationLayer, layerCount);
-
-//    proceed with creating a GLFW window.
-    GLFWwindow* window = glfwCreateWindow(width, height, "Vulkan window", NULL, NULL);
-    
-
-    
-//    2. Initial VK Instance
-//  Vulkan instance setup
+VkInstance createInstance(const char* validationLayers)
+{
+    uint32_t extensionCount = 0;
     VkInstance instance;
     VkApplicationInfo appInfo;
     VkInstanceCreateInfo createInfo;
     uint32_t glfwExtensionCount = 0;
-    uint32_t extensionCount = 0;
     const char** glfwExtensions;
     
-    
+//    2. Initial VK Instance
+//    These values can be #defined varibles at the top of the page
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pNext = NULL;
-    appInfo.pApplicationName = "Hello Triangle";
+    appInfo.pApplicationName = APP_NAME;
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = "No Engine";
+    appInfo.pEngineName = ENGINE_NAME;
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_2;
 
+//    Get required glfw extensions
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-    
     
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pNext = NULL;
@@ -139,8 +137,9 @@ int main(void) {
     createInfo.enabledExtensionCount = glfwExtensionCount;
     createInfo.ppEnabledExtensionNames = glfwExtensions;
     
-        
-    if (enableValidationLayers)
+//    Enable debug validation layer
+//    TO DO: fix disable validation layer
+    if (ENABLE_VALIDATION_LAYERS)
     {
         createInfo.enabledLayerCount = (uint32_t)(sizeof(&validationLayers) / sizeof(&validationLayers[0]));
         createInfo.ppEnabledLayerNames = &validationLayers;
@@ -167,51 +166,160 @@ int main(void) {
 //    free the allocated memory for instance_extensions
     free(instance_extensions);
     
-    
-    
-//    3.VkPhysicalDevice lets set up the physical devices our program is runnign on.
-//    Setting up the physical devices
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-    uint32_t deviceCount = 0;
+    return instance;
+}
 
-    vkEnumeratePhysicalDevices(instance, &deviceCount, NULL);
-    if (deviceCount > 0)
-    {
-        printf("GPU device found!\n");
-        VkPhysicalDevice* physical_device = malloc(sizeof(VkPhysicalDevice) * deviceCount);
-        vkEnumeratePhysicalDevices(instance, &deviceCount, physical_device);
+//Check the suitability of a device for use fo Vulkan API
+// This can be a very indepth function, however atm we just look to see if a
+//suitable device was found.
+bool isDeviceSuitable(VkPhysicalDevice device) {
+    return true;
+}
+
+VkPhysicalDevice createPhysicalDevice(VkInstance instance)
+{
+    //    Reoccurring variable
+        VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
         
-    //    The main device has been detected and varified as suitable for Vulkan API
-    //    This can be an indepth process of reviewing the device and understanding the GPUs
-    //    limitations. For not we just grab the device that is suitable for Vulkan API.
-        for (int i = 0; i < deviceCount; i++) {
-            if (isDeviceSuitable(*physical_device))
+    //    Variable is not used beyond line 200
+        uint32_t deviceCount = 0;
+
+        vkEnumeratePhysicalDevices(instance, &deviceCount, NULL);
+        if (deviceCount > 0)
+        {
+            printf("GPU device found!\n");
+            
+    //        This can be and internalised variable in a function
+            VkPhysicalDevice* physical_device = malloc(sizeof(VkPhysicalDevice) * deviceCount);
+            vkEnumeratePhysicalDevices(instance, &deviceCount, physical_device);
+            
+        //    The main device has been detected and varified as suitable for Vulkan API
+        //    This can be an indepth process of reviewing the device and understanding the GPUs
+        //    limitations. For not we just grab the device that is suitable for Vulkan API.
+            for (int i = 0; i < deviceCount; i++) {
+                if (isDeviceSuitable(*physical_device))
+                {
+                    printf("GPU device is suitable for Vulkan API.\n");
+                    physicalDevice = physical_device[i];
+                    break;
+                }
+            }
+            if (physicalDevice == VK_NULL_HANDLE)
             {
-                printf("GPU device is suitable for Vulkan API.\n");
-                physicalDevice = physical_device[i];
+                printf("GPU device found is not suitable for Vulkan API\n");
+            }
+            free(physical_device);
+        }
+        else
+        {
+            printf("failed to find GPUs with Vulkan support!\n\n");
+            return -1;
+        }
+    return physicalDevice;
+}
+
+
+VkDevice createLogicalDevice(VkPhysicalDevice physicalDevice, const char* validationLayers, uint32_t graphicsFamilyIndices, uint32_t queueCount)
+{
+    VkDevice device;
+    //    This variable is used once in struct VkDeviceQueueCreateInfo
+        float queuePriority = 1.0f;
+        
+        VkDeviceQueueCreateInfo queueCreateInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            .queueFamilyIndex = graphicsFamilyIndices,
+            .queueCount = queueCount,
+            .pQueuePriorities = &queuePriority
+        };
+        
+    //    Instantiate struct of device feature available. With initialised
+    //    everything is set to true.
+        VkPhysicalDeviceFeatures deviceFeatures;
+        vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
+    //    Set all physical device features to false.
+    //    memset(&deviceFeatures, 0, sizeof(deviceFeatures));
+        
+        VkDeviceCreateInfo deviceCreateinfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+            .pQueueCreateInfos = &queueCreateInfo,
+            .queueCreateInfoCount = 1,
+            .pEnabledFeatures = &deviceFeatures,
+            .enabledLayerCount = 1
+            
+        };
+        
+        if (ENABLE_VALIDATION_LAYERS)
+        {
+            deviceCreateinfo.ppEnabledLayerNames = &validationLayers;
+        }
+        
+    //    Here we have to enable the swapchain extension
+    //    This has to happen before logical device creation.....
+        
+    //    This is a global variable - changable depending on setup?
+        const char* deviceExtensions =
+        {
+            VK_KHR_SWAPCHAIN_EXTENSION_NAME
+        };
+        
+        uint32_t deviceExtensionCount;
+        vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &deviceExtensionCount, NULL);
+    //    Temp dynamic malloc variable, typeof struct
+        VkExtensionProperties* availableExtension = malloc(sizeof(VkExtensionProperties) * deviceExtensionCount);
+        
+        vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &deviceExtensionCount, availableExtension);
+      
+        for (int i = 0; i < deviceExtensionCount; i++)
+        {
+            if (strcmp((const char*) &deviceExtensions, (const char*) &availableExtension[i].extensionName))
+            {
+    //            we can be even more efficient with this by creating a bool value rtn for found divice extensions *
+                printf("%s extension support found\n", deviceExtensions);
                 break;
             }
         }
-        if (physicalDevice == VK_NULL_HANDLE)
-        {
-            printf("GPU device found is not suitable for Vulkan API\n");
+        
+        deviceCreateinfo.enabledExtensionCount = 1;
+        deviceCreateinfo.ppEnabledExtensionNames = &deviceExtensions;
+        free(availableExtension);
+
+    //    Creating the logical device.
+        if (vkCreateDevice(physicalDevice, &deviceCreateinfo, NULL, &device) != VK_SUCCESS) {
+            printf("failed to create logical device!\n");
         }
-        free(physical_device);
+    return device;
+}
+
+
+
+VkSurfaceKHR createSurface(VkInstance instance, GLFWwindow* window)
+{
+//    Golbal variable - also neceszary for cleanup
+    VkSurfaceKHR surface;
+    
+//    Temp rtn result fpr window surface creation
+    VkResult surfaceResult = glfwCreateWindowSurface(instance, window, NULL, &surface);
+    if (surfaceResult != VK_SUCCESS)
+    {
+        printf("Surface results code: %d \n", (int)surfaceResult);
+        printf("Please look up result in vulkan_core.h\n");
     }
     else
-    {
-        printf("failed to find GPUs with Vulkan support!\n\n");
-        return -1;
-    }
+        printf("GLFW VK window surface successfully created!\n");
+    
+    return surface;
+}
 
-    
-    
-//    4. :: Queue and graphics Family selections.
-    // Logic to find queue family indices to populate struct with
-//    Just below are the queue variable
+
+
+struct graphicsFamiliesAnIndices createGraFamInd(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
+{
     uint32_t graphicsFamilyIndices = 0;
     uint32_t queueCount = 0;
     uint32_t queueFamilyCount = 0;
+    
     vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, NULL);
 
     VkQueueFamilyProperties* queueFamilies = malloc(sizeof(VkQueueFamilyProperties) * queueFamilyCount);
@@ -219,12 +327,12 @@ int main(void) {
     if (queueFamilyCount >= 1)
     {
         printf("%d Family queues found\n", queueFamilyCount);
-        for (int i = 0; i < queueFamilyCount; i++) {
-            printf("Family queue num: %d has %u queues within it.\n", i+1, queueFamilies[i].queueCount);
-        }
+//        for (int i = 0; i < queueFamilyCount; i++) {
+//            printf("Family queue num: %d has %u queues within it.\n", i+1, queueFamilies[i].queueCount);
+//        }
         for (int i = 0; i < queueFamilyCount; i++)
         {
-            if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+            if (queueFamilies[i].queueFlags && VK_QUEUE_GRAPHICS_BIT)
             {
                     graphicsFamilyIndices = i;
                     queueCount = queueFamilies[i].queueCount;
@@ -236,87 +344,10 @@ int main(void) {
     }
     free(queueFamilies);
 
-    
-
-//  5 :: Setting up a logical devices to interface with.
-//    This is the main device that is used through out the rest of the program
-    VkDevice device;
-    
-    float queuePriority = 1.0f;
-    VkDeviceQueueCreateInfo queueCreateInfo =
-    {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .queueFamilyIndex = graphicsFamilyIndices,
-        .queueCount = queueCount,
-        .pQueuePriorities = &queuePriority
-    };
-    
-//    Instantiate struct of device feature available. With initialised
-//    everything is set to true.
-    VkPhysicalDeviceFeatures deviceFeatures;
-    vkGetPhysicalDeviceFeatures(physicalDevice, &deviceFeatures);
-//    Set all physical device features to false.
-//    memset(&deviceFeatures, 0, sizeof(deviceFeatures));
-    
-    VkDeviceCreateInfo deviceCreateinfo =
-    {
-        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-        .pQueueCreateInfos = &queueCreateInfo,
-        .queueCreateInfoCount = 1,
-        .pEnabledFeatures = &deviceFeatures,
-        .enabledLayerCount = 1,
-        .ppEnabledLayerNames = &validationLayers
-    };
-    
-    
-//    Here we have to enable the swapchain extension
-//    This has to happen before logical device creation.....
-    const char* deviceExtensions =
-    {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
-    
-    uint32_t deviceExtensionCount;
-    vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &deviceExtensionCount, NULL);
-    VkExtensionProperties* availableExtension = malloc(sizeof(VkExtensionProperties) * deviceExtensionCount);
-    
-    vkEnumerateDeviceExtensionProperties(physicalDevice, NULL, &deviceExtensionCount, availableExtension);
-  
-    for (int i = 0; i < deviceExtensionCount; i++)
-    {
-        if (strcmp((const char*) &deviceExtensions, (const char*) &availableExtension[i].extensionName))
-        {
-//            we can be even more efficient with this by creating a bool value rtn for found divice extensions *
-            printf("%s extension support found\n", deviceExtensions);
-            break;
-        }
-    }
-    
-    deviceCreateinfo.enabledExtensionCount = 1;
-    deviceCreateinfo.ppEnabledExtensionNames = &deviceExtensions;
-    free(availableExtension);
-
-//    Creating the logical device.
-    if (vkCreateDevice(physicalDevice, &deviceCreateinfo, NULL, &device) != VK_SUCCESS) {
-        printf("failed to create logical device!\n");
-    }
-
-    
-//    6 :: initialising  the device surface object
-//    Window surface
-    
-    VkSurfaceKHR surface;
-    
-    VkResult surfaceResult = glfwCreateWindowSurface(instance, window, NULL, &surface);
-    if (surfaceResult != VK_SUCCESS)
-    {
-        printf("Surface results code: %d \n", (int)surfaceResult);
-        printf("Please look up result in vulkan_core.h\n");
-    }
-    else
-        printf("GLFW VK window surface successfully created!\n");
-    
+//    Global varible that is used throughout various structs
     uint32_t presentFamily;
+    
+//    Not used past this below code block
     VkBool32 presentSupport = false;
     vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, graphicsFamilyIndices, surface, &presentSupport);
     if (presentSupport)
@@ -327,104 +358,211 @@ int main(void) {
     }
     else
         presentFamily = 0;
+
     
-//    Completing presentation queue
+    struct graphicsFamiliesAnIndices queueFamilyIndicesInfo =
+    {
+        .graphicsFamilyIndices = graphicsFamilyIndices,
+        .queueCount = queueCount,
+        .presentFamily = presentFamily,
+        .queueFamilyIndices = {
+            graphicsFamilyIndices,
+            presentFamily
+        }
+        
+    };
+    
+    return queueFamilyIndicesInfo;
+
+}
+
+VkQueue createGraphicsQueue(VkDevice device, struct graphicsFamiliesAnIndices queueFamilyIndicesInfo)
+{
     VkQueue graphicsQueue;
-    vkGetDeviceQueue(device, presentFamily, graphicsFamilyIndices, &graphicsQueue);
-    
-//    6.1 : We are now checking for compatibilities we desire and whats possible with the
-//    physicalDevice.
-    
+    vkGetDeviceQueue(device, queueFamilyIndicesInfo.presentFamily, queueFamilyIndicesInfo.graphicsFamilyIndices, &graphicsQueue);
+    return graphicsQueue;
+}
+
+
+VkSurfaceCapabilitiesKHR checkPhysicalDeviceCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
+{
     VkSurfaceCapabilitiesKHR capabilities;
+    //    Temp trn result for process.
     VkResult surfaceCapabilitesResult = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
     if (surfaceCapabilitesResult != VK_SUCCESS)
     {
         printf("Surface capabilities initialisation failed.\n");
         printf("return code: %u\n", surfaceCapabilitesResult);
-        return -1;
-    }
-    
-//    Initial these two VK structs...
-//    more information on stucts and dat inside to come...
-//    The reason we initialise these here is because we will use them just below, however the resizing is
-//    happening after we check the result back from surface formats KHR
-//    This is to prevent them being un-initialised.
-    VkSurfaceFormatKHR* formats = malloc(sizeof(VkSurfaceFormatKHR) * 1);
-    VkPresentModeKHR* presentModes = malloc(sizeof(VkPresentModeKHR) * 1);
-    
-    uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, NULL);
-    VkSurfaceFormatKHR availableFormats;
-    if (formatCount != 0) {
-        formats = realloc(formats, sizeof(VkSurfaceFormatKHR) * formatCount);
-        VkResult surfaceFormatResult = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, formats);
-        if (surfaceFormatResult != VK_SUCCESS) {
-            printf("Something went wrong...\n");
-            printf("Return code: %u\n", surfaceFormatResult);
-            
-            free(formats);
-            free(presentModes);
-            return -1;
-        }
-        else
-        {
-            for (int i = 0; i < formatCount; i++)
-            {
-                if (formats[i].format == VK_FORMAT_B8G8R8A8_SRGB && formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-                {
-                    availableFormats = formats[i];
-                    printf("Format VK_FORMAT_B8G8R8A8_SRGB and colorspace VK_COLOR_SPACE_SRGB_NONLINEAR_KHR found!\n");
-                    break;
-                }
-                
-            }
-        }
-    }
-    
-    uint32_t presentModeCount = 0;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, NULL);
-    VkPresentModeKHR avaiablePresentMode;
-    
-    if (presentModeCount != 0) {
-        presentModes = realloc(presentModes, sizeof(VkPresentModeKHR) * presentModeCount);
-        VkResult surfacePresentModeResult = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes);
-        if (surfacePresentModeResult != VK_SUCCESS) {
-            printf("Something went wrong...\n");
-            printf("Return code: %u\n", surfacePresentModeResult);
-            free(presentModes);
-            return -1;
-        }
-        else
-        {
-            for (int i = 0; i < presentModeCount; i++)
-            {
-                if (presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
-                    avaiablePresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-                    printf("VK_PRESENT_MODE_MAILBOX_KHR present mode selected\n");
-                    break;
-                }
-
-            }
-            avaiablePresentMode = VK_PRESENT_MODE_FIFO_KHR;
-            printf("VK_PRESENT_MODE_FIFO_KHR present mode selected\n");
-//            avaiablePresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-//            printf("%u\n", avaiablePresentMod);
-        }
-    }
-    else
-    {
-        printf("Your system might not be Vulkan compatible, please double check your system.\n");
         
+    }
+    return capabilities;
+}
+
+
+struct availablePresentsAnFormats findPresentsAnFormats(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
+{
+    //    Initial these two VK structs...
+    //    more information on stucts and dat inside to come...
+    //    The reason we initialise these here is because we will use them just below, however the resizing is
+    //    happening after we check the result back from surface formats KHR
+    //    This is to prevent them being un-initialised.
+        
+    //    Both these variables are temp malloc that are freed at the end of this code block
+        VkSurfaceFormatKHR* formats = malloc(sizeof(VkSurfaceFormatKHR) * 1);
+        VkPresentModeKHR* presentModes = malloc(sizeof(VkPresentModeKHR) * 1);
+    //    Temp function that is only used in this code block.
+        uint32_t formatCount;
+        vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, NULL);
+    //    Global struct variable
+        struct availablePresentsAnFormats presentsAnFormatsInfo;
+//        VkSurfaceFormatKHR availableFormats;
+        if (formatCount != 0) {
+            formats = realloc(formats, sizeof(VkSurfaceFormatKHR) * formatCount);
+    //        temp rtn result function.
+            VkResult surfaceFormatResult = vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, formats);
+            if (surfaceFormatResult != VK_SUCCESS) {
+                printf("Something went wrong...\n");
+                printf("Return code: %u\n", surfaceFormatResult);
+                
+//                free(formats);
+//                free(presentModes);
+//                return -1;
+            }
+            else
+            {
+                for (int i = 0; i < formatCount; i++)
+                {
+                    if (formats[i].format == VK_FORMAT_B8G8R8A8_SRGB && formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+                    {
+                        presentsAnFormatsInfo.availableFormats = formats[i];
+                        printf("Format VK_FORMAT_B8G8R8A8_SRGB and colorspace VK_COLOR_SPACE_SRGB_NONLINEAR_KHR found!\n");
+                        break;
+                    }
+                    
+                }
+            }
+        }
+        
+        uint32_t presentModeCount = 0;
+        vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, NULL);
+        
+        if (presentModeCount != 0) {
+            presentModes = realloc(presentModes, sizeof(VkPresentModeKHR) * presentModeCount);
+            VkResult surfacePresentModeResult = vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, &presentModeCount, presentModes);
+            if (surfacePresentModeResult != VK_SUCCESS) {
+                printf("Something went wrong...\n");
+                printf("Return code: %u\n", surfacePresentModeResult);
+//                free(presentModes);
+//                return -1;
+            }
+            else
+            {
+                for (int i = 0; i < presentModeCount; i++)
+                {
+                    if (presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
+                        presentsAnFormatsInfo.avaiablePresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+                        printf("VK_PRESENT_MODE_MAILBOX_KHR present mode selected\n");
+                        break;
+                    }
+
+                }
+                presentsAnFormatsInfo.avaiablePresentMode = VK_PRESENT_MODE_FIFO_KHR;
+                printf("VK_PRESENT_MODE_FIFO_KHR present mode selected\n");
+    //            avaiablePresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+    //            printf("%u\n", avaiablePresentMod);
+            }
+        }
+        else
+        {
+            printf("Your system might not be Vulkan compatible, please double check your system.\n");
+            
+//            free(formats);
+//            free(presentModes);
+//            return -1;
+        }
+
+    //    free memory allocation for formats and presentMode varibles
         free(formats);
         free(presentModes);
-        return -1;
-    }
-
-
-//    free memory allocation for formats and presentMode varibles
-    free(formats);
-    free(presentModes);
     
+    return presentsAnFormatsInfo;
+}
+
+
+
+//Main function
+//TO DO:
+// Abstraction once triangle is done.
+int main(void) {
+    
+// Opening glfw window setup...
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    
+    const uint32_t width = 800;
+    const uint32_t height = 600;
+    
+    
+    const char* instance_validation_layers = NULL;
+ 
+//    1. Initialising the validation layer.
+//    Currently if its shut off the program crashes.
+//    TO DO: FIX Disable functionality
+    initValidationLayer(validationLayers, instance_validation_layers);
+
+
+//    proceed with creating a GLFW window.
+    GLFWwindow* window = glfwCreateWindow(width, height, WINDOW_NAME, NULL, NULL);
+    
+    
+//    2. Vulkan instance setup
+//    Create our instances
+    VkInstance instance = createInstance(validationLayers);
+        
+//    3.VkPhysicalDevice lets set up the physical devices our program is runnign on.
+//    Setting up the physical devices
+    VkPhysicalDevice physicalDevice = createPhysicalDevice(instance);
+
+//    4. Create physical device surface
+    VkSurfaceKHR surface = createSurface(instance, window);
+    
+    
+//    5 :: Queue and graphics Family selections.
+    // Logic to find queue family indices to populate struct with
+//    Just below are the queue variable
+    struct graphicsFamiliesAnIndices queueFamilyIndicesInfo = createGraFamInd(physicalDevice, surface);
+
+    
+//  6 :: Setting up a logical devices to interface with.
+//    This is the main device that is used through out the rest of the program
+    
+//    Just like instance, this is a global variable
+    VkDevice device = createLogicalDevice(physicalDevice, validationLayers, queueFamilyIndicesInfo.graphicsFamilyIndices, queueFamilyIndicesInfo.queueCount);
+    
+    
+    
+//   7.  Completing presentation queue
+//    Global variable that is required for cleanup
+    VkQueue graphicsQueue = createGraphicsQueue(device, queueFamilyIndicesInfo);
+    
+//    8 : We are now checking for compatibilities we desire and whats possible with the
+//    physicalDevice.
+    
+//    This can be abstracted quickly
+//    Global variable that is required for cleanup
+    VkSurfaceCapabilitiesKHR capabilities = checkPhysicalDeviceCapabilities(physicalDevice, surface);
+
+//    Lets create a custom struct that is needed for the swap chain and the commandbuffers
+//    Could extend this to include VkExtent2D extent &  uint32_t imageCount
+    struct availablePresentsAnFormats presentsAnFormatsInfo = findPresentsAnFormats(physicalDevice, surface);
+    
+    
+    /**
+     This block can be added to the above availablePresentsAnFormats struct
+     */
+//    capabilities is required for this statement. However this
+//    statement is also not doing anything
     if (capabilities.currentExtent.width != UINT32_MAX)
     {
         printf("\ncapabilities.currentExtent.width != UINT32_MAX...\n");
@@ -433,8 +571,12 @@ int main(void) {
     
 //    STEP 6.2:: Setting up the action swap chain functionality
 //    Remember we initialised this extension before in step 5.
+    
+//    This is a global variable - its also using capabilities
     VkExtent2D extent = capabilities.currentExtent;
     
+//  This is a reoccuring variable that is used to fill several
+//    data points in other structs
     uint32_t imageCount = capabilities.minImageCount + 1;
     
     if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount)
@@ -442,14 +584,27 @@ int main(void) {
         imageCount = capabilities.maxImageCount;
     }
     
+    /**
+     End of this code block note
+     */
+    
+    
+    
+    
+/**
+ Creation of the swapchain
+ */
+    
+    
+//    Global struct that pertains to the swapchain
     VkSwapchainCreateInfoKHR createSwapChainInfo =
     {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .surface = surface,
         .minImageCount = imageCount,
-        .imageFormat = availableFormats.format,
-        .imageColorSpace = availableFormats.colorSpace,
-        .presentMode = avaiablePresentMode,
+        .imageFormat = presentsAnFormatsInfo.availableFormats.format,
+        .imageColorSpace = presentsAnFormatsInfo.availableFormats.colorSpace,
+        .presentMode = presentsAnFormatsInfo.avaiablePresentMode,
         .imageExtent = extent,
         .imageArrayLayers = 1,
         .preTransform = capabilities.currentTransform,
@@ -459,28 +614,25 @@ int main(void) {
         .oldSwapchain = VK_NULL_HANDLE
     };
     
-    uint32_t queueFamilyIndices[] =
-    {
-        graphicsFamilyIndices,
-        presentFamily
-    };
     
-    if (graphicsFamilyIndices != presentFamily)
+    if (queueFamilyIndicesInfo.graphicsFamilyIndices != queueFamilyIndicesInfo.presentFamily)
     {
         printf("Graphics family does not equal present family\n\n");
         createSwapChainInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         createSwapChainInfo.queueFamilyIndexCount = 2;
-        createSwapChainInfo.pQueueFamilyIndices = queueFamilyIndices;
+        createSwapChainInfo.pQueueFamilyIndices = queueFamilyIndicesInfo.queueFamilyIndices;
     }
     else
     {
         printf("Graphics family equal present family\n\n");
         createSwapChainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
         createSwapChainInfo.queueFamilyIndexCount = 0; // Optional
-        createSwapChainInfo.pQueueFamilyIndices = queueFamilyIndices; // Optional
+        createSwapChainInfo.pQueueFamilyIndices = queueFamilyIndicesInfo.queueFamilyIndices; // Optional
     }
     
+//    global variable - this is our swapchain
     VkSwapchainKHR swapChainKHR;
+//    temp rtn variable for swapchain creation
     VkResult swapChainCreateResult = vkCreateSwapchainKHR(device, &createSwapChainInfo, NULL, &swapChainKHR);
     if (swapChainCreateResult != VK_SUCCESS)
     {
@@ -488,10 +640,19 @@ int main(void) {
         return -1;
     }
     
+    
+    /**
+     This block pertains to    createImageViews(); from tutorial
+     */
+//    local malloc variable that is freed at the end of this code block
     VkImage* swapChainImages = malloc(sizeof(VkImage) * 1);
+    
+//    These two functions should really be wrapped in if statements to make sure they are successful
     vkGetSwapchainImagesKHR(device, swapChainKHR, &imageCount, NULL);
     vkGetSwapchainImagesKHR(device, swapChainKHR, &imageCount, swapChainImages);
+//    reoccurring variable for tracking swapchain image count
     int swapChainImagesCount = (int) sizeof(swapChainImages) / (int) swapChainImages[0];
+//    Global malloc variable that is freed at the end of program
     VkImageView* swapChainImageViews = malloc(sizeof(VkImageView) * swapChainImagesCount);
     
     
@@ -502,7 +663,7 @@ int main(void) {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .image = swapChainImages[i],
             .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = availableFormats.format,
+            .format = presentsAnFormatsInfo.availableFormats.format,
             .components.r = VK_COMPONENT_SWIZZLE_IDENTITY,
             .components.g = VK_COMPONENT_SWIZZLE_IDENTITY,
             .components.b = VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -520,12 +681,18 @@ int main(void) {
         }
 
     }
+    free(swapChainImages);
+    
+    
     
     
 
 //    7 :: Graphics pipeline
 //    After a long arguous process, we are finally at the graphics pipe line!
 
+//    this whole section can be abstracted into functions and return a single variable
+//    Functions needed: (1) parseShaders; (2) compileShaders; (3) createShaderProgram
+    
 //    7.1 : Shaders (Vertex Shader first)::
 //    To Do: Abstract this fundtion
     char vertPath[] =
@@ -635,6 +802,8 @@ int main(void) {
         .pName = "main"
     };
     
+//    This is the final outcome of this code block
+//    Furthermore these variables are used for the graphics pipeline
     VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
     
 //    Now that we have our frag shader we free the compiled results, and free the compiler itself
@@ -647,6 +816,8 @@ int main(void) {
 //    7.2 : Fixing functions
 //    This is the next major step
 //    In Vulkan you have to be explicit about everything, from viewport size to color blending function.
+    
+//    Below we are establishing loads of settings for our rendering pipeline
     
     VkPipelineVertexInputStateCreateInfo vertexInputInfo =
     {
@@ -742,6 +913,7 @@ int main(void) {
     
     
 // 7.3 : Creating the graphics pipeline
+//    Global variable this is our pipline layout which will be submitted for drawing.
     VkPipelineLayout pipelineLayout;
     
     VkPipelineLayoutCreateInfo pipelineLayoutInfo =
@@ -757,11 +929,14 @@ int main(void) {
     if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, NULL, &pipelineLayout) != VK_SUCCESS) {
         printf("failed to create pipeline layout!\n");
     }
+    
 
 //    7.4 : Creating the rendering pass
 //    Next major stage
     
-    VkFormat VkColourFormat = availableFormats.format;
+//    This is an exact variable... Can be cut and instead etend availableFormats
+//    struct type
+    VkFormat VkColourFormat = presentsAnFormatsInfo.availableFormats.format;
     VkAttachmentDescription colorAttachment =
     {
         .format = VkColourFormat,
@@ -787,7 +962,7 @@ int main(void) {
         .pColorAttachments = &colorAttachmentRef
     };
     
-    
+//    Global variable that is needed for cleanup at the end of program
     VkRenderPass renderPass;
 //    VkPipelineLayout renderPipelineLayout;
     
@@ -801,6 +976,7 @@ int main(void) {
 
     };
     
+//    Dependacy can actually happen before renderpass info
     VkSubpassDependency dependency =
     {
         .srcSubpass = VK_SUBPASS_EXTERNAL,
@@ -814,11 +990,15 @@ int main(void) {
     renderPassInfo.dependencyCount = 1;
     renderPassInfo.pDependencies = &dependency;
     
+//    Creation of the render pass
     if (vkCreateRenderPass(device, &renderPassInfo, NULL, &renderPass) != VK_SUCCESS) {
         printf("failed to create render pass!\n");
         return -1;
     }
     
+//    This is the creation of the graphics pipeline
+//    This struct below uses several structs established before
+//    ... could I combine and abstract this setup?
     VkGraphicsPipelineCreateInfo graphicsPipelineInfo =
     {
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -848,6 +1028,9 @@ int main(void) {
 
 //    8 : setting up the command buffer and frame buffers plue the render
 //    pass command pool
+    
+//    Global variable that is malloc with the determined size of the swapchain image count.
+//    Needed for cleanup at the end.
     VkFramebuffer* swapChainFramebuffers = malloc(sizeof(VkFramebuffer) * swapChainImagesCount);
     
     for (int i = 0; i < swapChainImagesCount; i++)
@@ -878,12 +1061,14 @@ int main(void) {
     
 //    Lets create the commandpool now..
 //    What the command pool exactly is.. to find out
+    
+//    Global variable that is needed also for cleanup at the end of program
     VkCommandPool commandPool;
     
     VkCommandPoolCreateInfo poolInfo =
     {
         .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-        .queueFamilyIndex = presentFamily,
+        .queueFamilyIndex = queueFamilyIndicesInfo.presentFamily,
         .flags = 0 // Optional
     };
     
@@ -895,6 +1080,8 @@ int main(void) {
 
     
 //    Creating the command buffer
+//    Global variable that is malloc with the determined size of the swapchain image count.
+//    Needed for cleanup at the end.
     VkCommandBuffer* commandBuffers = malloc(sizeof(VkCommandBuffer) * swapChainImagesCount);
     
     VkCommandBufferAllocateInfo allocInfo =
@@ -917,7 +1104,7 @@ int main(void) {
 //    Starting the command buffer recording
     int commandBufferSize = (int) sizeof(commandBuffers) / sizeof(commandBuffers[0]);
     
-    
+//    All values in this code block are temporary expect the variables that are being changed.
     for (int i = 0; i < commandBufferSize; i++)
     {
         VkCommandBufferBeginInfo beginInfo =
@@ -1143,7 +1330,7 @@ int main(void) {
                 vkDestroyImageView(device, swapChainImageViews[i], NULL);
             }
             free(swapChainImageViews);
-            free(swapChainImages);
+
             vkDestroySwapchainKHR(device, swapChainKHR, NULL);
             vkDestroyDevice(device, NULL);
             vkDestroySurfaceKHR(instance, surface, NULL);

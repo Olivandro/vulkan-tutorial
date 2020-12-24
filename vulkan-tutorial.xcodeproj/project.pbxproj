@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9978250A25901F4500F44260 /* initVK.c in Sources */ = {isa = PBXBuildFile; fileRef = 9978250925901F4500F44260 /* initVK.c */; };
+		9978250E25901F7E00F44260 /* swapchain.c in Sources */ = {isa = PBXBuildFile; fileRef = 9978250D25901F7E00F44260 /* swapchain.c */; };
 		9980910E257AB12000D38F4E /* libshaderc_shared.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 998090F5257AAF4100D38F4E /* libshaderc_shared.1.dylib */; };
 		99809110257AB12000D38F4E /* libspirv-cross-c-shared.0.36.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 99809101257AB03000D38F4E /* libspirv-cross-c-shared.0.36.0.dylib */; };
 		99809112257AB12000D38F4E /* libSPIRV-Tools-shared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 998090FE257AAFE500D38F4E /* libSPIRV-Tools-shared.dylib */; };
@@ -30,8 +32,10 @@
 
 /* Begin PBXFileReference section */
 		99597C4F252927AD00C159CA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		99600DA925778D9000C9C3B0 /* frag.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = frag.spv; sourceTree = "<group>"; };
-		99600DAA25778D9100C9C3B0 /* vert.spv */ = {isa = PBXFileReference; lastKnownFileType = file; path = vert.spv; sourceTree = "<group>"; };
+		9978250825901F4500F44260 /* initVK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = initVK.h; sourceTree = "<group>"; };
+		9978250925901F4500F44260 /* initVK.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = initVK.c; sourceTree = "<group>"; };
+		9978250C25901F7E00F44260 /* swapchain.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = swapchain.h; sourceTree = "<group>"; };
+		9978250D25901F7E00F44260 /* swapchain.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = swapchain.c; sourceTree = "<group>"; };
 		998090E6257AA58E00D38F4E /* libshaderc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libshaderc.a; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libshaderc.a"; sourceTree = "<group>"; };
 		998090EA257AAC5500D38F4E /* libshaderc_util.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libshaderc_util.a; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libshaderc_util.a"; sourceTree = "<group>"; };
 		998090ED257AAD6E00D38F4E /* libspirv-cross-glsl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libspirv-cross-glsl.a"; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libspirv-cross-glsl.a"; sourceTree = "<group>"; };
@@ -82,6 +86,8 @@
 		99600DAC25778DC000C9C3B0 /* include */ = {
 			isa = PBXGroup;
 			children = (
+				9978250C25901F7E00F44260 /* swapchain.h */,
+				9978250825901F4500F44260 /* initVK.h */,
 			);
 			path = include;
 			sourceTree = "<group>";
@@ -89,8 +95,6 @@
 		99A0379725770030006BA209 /* shaders */ = {
 			isa = PBXGroup;
 			children = (
-				99600DA925778D9000C9C3B0 /* frag.spv */,
-				99600DAA25778D9100C9C3B0 /* vert.spv */,
 				99A0379925778B9E006BA209 /* shader.vert */,
 				99A0379A25778BBB006BA209 /* shader.frag */,
 			);
@@ -124,6 +128,8 @@
 				99597C4F252927AD00C159CA /* README.md */,
 				99C05A532529527A002E0D0C /* .gitignore */,
 				99C05A57252956DC002E0D0C /* LICENCE.md */,
+				9978250925901F4500F44260 /* initVK.c */,
+				9978250D25901F7E00F44260 /* swapchain.c */,
 			);
 			path = "vulkan-tutorial";
 			sourceTree = "<group>";
@@ -204,6 +210,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9978250A25901F4500F44260 /* initVK.c in Sources */,
+				9978250E25901F7E00F44260 /* swapchain.c in Sources */,
 				99E5C0CA2523D7410071F105 /* main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -271,6 +279,7 @@
 					"/Users/olivandro/Apps/vulkansdk-macos-1.2.148.1/MoltenVK/include/**",
 					"/Users/olivandro/Apps/vulkansdk-macos-1.2.148.1/macOS/include/**",
 					"/Users/olivandro/Apps/vulkan-tutorial/dep/include/",
+					"/Users/olivandro/Apps/vulkan-tutorial/include/",
 				);
 				"LIBRARY_SEARCH_PATHS[arch=*]" = (
 					"/Users/olivandro/Apps/vulkansdk-macos-1.2.148.1/macOS/lib/**",
