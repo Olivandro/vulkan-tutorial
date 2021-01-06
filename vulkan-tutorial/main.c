@@ -1,11 +1,9 @@
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
+#include "include/geninc.h"
+
 #include <shaderc/shaderc.h>
+
+#include "shaders.h"
 
 #define ENABLE_VALIDATION_LAYERS true
 #define APP_NAME "Hello Triangle"
@@ -37,11 +35,14 @@ struct availablePresentsAnFormats
 {
     VkSurfaceFormatKHR availableFormats;
     VkPresentModeKHR avaiablePresentMode;
+    VkExtent2D extent;
+    VkSurfaceTransformFlagBitsKHR currentTransform;
+    uint32_t imageCount;
     
 } availablePresentsAnFormats;
 
 /**
-    Program functions
+ Program functions
  */
 void initValidationLayer(const char* validationLayers, const char* instance_validation_layers)
 {
@@ -108,65 +109,65 @@ void initValidationLayer(const char* validationLayers, const char* instance_vali
 
 VkInstance createInstance(const char* validationLayers)
 {
-    uint32_t extensionCount = 0;
-    VkInstance instance;
-    VkApplicationInfo appInfo;
-    VkInstanceCreateInfo createInfo;
-    uint32_t glfwExtensionCount = 0;
-    const char** glfwExtensions;
-    
-//    2. Initial VK Instance
-//    These values can be #defined varibles at the top of the page
-    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pNext = NULL;
-    appInfo.pApplicationName = APP_NAME;
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = ENGINE_NAME;
-    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_2;
+        uint32_t extensionCount = 0;
+        VkInstance instance;
+        VkApplicationInfo appInfo;
+        VkInstanceCreateInfo createInfo;
+        uint32_t glfwExtensionCount = 0;
+        const char** glfwExtensions;
+        
+    //    2. Initial VK Instance
+    //    These values can be #defined varibles at the top of the page
+        appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+        appInfo.pNext = NULL;
+        appInfo.pApplicationName = APP_NAME;
+        appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.pEngineName = ENGINE_NAME;
+        appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.apiVersion = VK_API_VERSION_1_2;
 
-//    Get required glfw extensions
-    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-    
-    createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    createInfo.pNext = NULL;
-    createInfo.flags = 0;
-    createInfo.pApplicationInfo = &appInfo;
-    createInfo.enabledLayerCount = 0;
-    createInfo.ppEnabledLayerNames = NULL;
-    createInfo.enabledExtensionCount = glfwExtensionCount;
-    createInfo.ppEnabledExtensionNames = glfwExtensions;
-    
-//    Enable debug validation layer
-//    TO DO: fix disable validation layer
-    if (ENABLE_VALIDATION_LAYERS)
-    {
-        createInfo.enabledLayerCount = (uint32_t)(sizeof(&validationLayers) / sizeof(&validationLayers[0]));
-        createInfo.ppEnabledLayerNames = &validationLayers;
-    }
-    
-    VkResult result = vkCreateInstance(&createInfo, NULL, &instance);
-    
-    if (result != VK_SUCCESS)
-        printf("failed to create Vulkan instance! Return code: %d\n", (int)result);
-    else
-        printf("VkInstance successfully created!\n Return code: %d \n", (int)result);
+    //    Get required glfw extensions
+        glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+        
+        createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+        createInfo.pNext = NULL;
+        createInfo.flags = 0;
+        createInfo.pApplicationInfo = &appInfo;
+        createInfo.enabledLayerCount = 0;
+        createInfo.ppEnabledLayerNames = NULL;
+        createInfo.enabledExtensionCount = glfwExtensionCount;
+        createInfo.ppEnabledExtensionNames = glfwExtensions;
+        
+    //    Enable debug validation layer
+    //    TO DO: fix disable validation layer
+        if (ENABLE_VALIDATION_LAYERS)
+        {
+            createInfo.enabledLayerCount = (uint32_t)(sizeof(&validationLayers) / sizeof(&validationLayers[0]));
+            createInfo.ppEnabledLayerNames = &validationLayers;
+        }
+        
+        VkResult result = vkCreateInstance(&createInfo, NULL, &instance);
+        
+        if (result != VK_SUCCESS)
+            printf("failed to create Vulkan instance! Return code: %d\n", (int)result);
+        else
+            printf("VkInstance successfully created!\n Return code: %d \n", (int)result);
 
-    
-//  Check for number of available extension
-    vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, NULL);
-    printf("Number of extensions supported: %d \n", extensionCount);
-    
-//  lets print out the names of the extensions available
-    VkExtensionProperties* instance_extensions = malloc(sizeof(VkExtensionProperties) * extensionCount);
-    vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, instance_extensions);
-    for (int i = 0; i < extensionCount; i++) {
-        printf("Extension name: %s \n", instance_extensions[i].extensionName);
-    }
-//    free the allocated memory for instance_extensions
-    free(instance_extensions);
-    
-    return instance;
+        
+    //  Check for number of available extension
+        vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, NULL);
+        printf("Number of extensions supported: %d \n", extensionCount);
+        
+    //  lets print out the names of the extensions available
+        VkExtensionProperties* instance_extensions = malloc(sizeof(VkExtensionProperties) * extensionCount);
+        vkEnumerateInstanceExtensionProperties(NULL, &extensionCount, instance_extensions);
+        for (int i = 0; i < extensionCount; i++) {
+            printf("Extension name: %s \n", instance_extensions[i].extensionName);
+        }
+    //    free the allocated memory for instance_extensions
+        free(instance_extensions);
+        
+        return instance;
 }
 
 //Check the suitability of a device for use fo Vulkan API
@@ -221,7 +222,7 @@ VkPhysicalDevice createPhysicalDevice(VkInstance instance)
 
 VkDevice createLogicalDevice(VkPhysicalDevice physicalDevice, const char* validationLayers, uint32_t graphicsFamilyIndices, uint32_t queueCount)
 {
-    VkDevice device;
+        VkDevice device;
     //    This variable is used once in struct VkDeviceQueueCreateInfo
         float queuePriority = 1.0f;
         
@@ -247,7 +248,6 @@ VkDevice createLogicalDevice(VkPhysicalDevice physicalDevice, const char* valida
             .queueCreateInfoCount = 1,
             .pEnabledFeatures = &deviceFeatures,
             .enabledLayerCount = 1
-            
         };
         
         if (ENABLE_VALIDATION_LAYERS)
@@ -289,125 +289,117 @@ VkDevice createLogicalDevice(VkPhysicalDevice physicalDevice, const char* valida
         if (vkCreateDevice(physicalDevice, &deviceCreateinfo, NULL, &device) != VK_SUCCESS) {
             printf("failed to create logical device!\n");
         }
-    return device;
+    
+        return device;
 }
 
 
 
 VkSurfaceKHR createSurface(VkInstance instance, GLFWwindow* window)
 {
-//    Golbal variable - also neceszary for cleanup
-    VkSurfaceKHR surface;
-    
-//    Temp rtn result fpr window surface creation
-    VkResult surfaceResult = glfwCreateWindowSurface(instance, window, NULL, &surface);
-    if (surfaceResult != VK_SUCCESS)
-    {
-        printf("Surface results code: %d \n", (int)surfaceResult);
-        printf("Please look up result in vulkan_core.h\n");
-    }
-    else
-        printf("GLFW VK window surface successfully created!\n");
-    
-    return surface;
+    //    Golbal variable - also neceszary for cleanup
+        VkSurfaceKHR surface;
+        
+    //    Temp rtn result fpr window surface creation
+        VkResult surfaceResult = glfwCreateWindowSurface(instance, window, NULL, &surface);
+        if (surfaceResult != VK_SUCCESS)
+        {
+            printf("Surface results code: %d \n", (int)surfaceResult);
+            printf("Please look up result in vulkan_core.h\n");
+        }
+        else
+            printf("GLFW VK window surface successfully created!\n");
+        
+        return surface;
 }
 
 
 
 struct graphicsFamiliesAnIndices createGraFamInd(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
 {
-    uint32_t graphicsFamilyIndices = 0;
-    uint32_t queueCount = 0;
-    uint32_t queueFamilyCount = 0;
-    
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, NULL);
+        uint32_t graphicsFamilyIndices = 0;
+        uint32_t queueCount = 0;
+        uint32_t queueFamilyCount = 0;
+        
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, NULL);
 
-    VkQueueFamilyProperties* queueFamilies = malloc(sizeof(VkQueueFamilyProperties) * queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies);
-    if (queueFamilyCount >= 1)
-    {
-        printf("%d Family queues found\n", queueFamilyCount);
-//        for (int i = 0; i < queueFamilyCount; i++) {
-//            printf("Family queue num: %d has %u queues within it.\n", i+1, queueFamilies[i].queueCount);
-//        }
-        for (int i = 0; i < queueFamilyCount; i++)
+        VkQueueFamilyProperties* queueFamilies = malloc(sizeof(VkQueueFamilyProperties) * queueFamilyCount);
+        vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount, queueFamilies);
+        if (queueFamilyCount >= 1)
         {
-            if (queueFamilies[i].queueFlags && VK_QUEUE_GRAPHICS_BIT)
+            printf("%d Family queues found\n", queueFamilyCount);
+    //        for (int i = 0; i < queueFamilyCount; i++) {
+    //            printf("Family queue num: %d has %u queues within it.\n", i+1, queueFamilies[i].queueCount);
+    //        }
+            for (int i = 0; i < queueFamilyCount; i++)
             {
-                    graphicsFamilyIndices = i;
-                    queueCount = queueFamilies[i].queueCount;
-                    printf("Graphics Family indices: %d \n", graphicsFamilyIndices);
-                    printf("Queue Flags: %u \n", queueFamilies[i].queueFlags);
-                    break;
+                if (queueFamilies[i].queueFlags && VK_QUEUE_GRAPHICS_BIT)
+                {
+                        graphicsFamilyIndices = i;
+                        queueCount = queueFamilies[i].queueCount;
+                        printf("Graphics Family indices: %d \n", graphicsFamilyIndices);
+                        printf("Queue Flags: %u \n", queueFamilies[i].queueFlags);
+                        break;
+                }
             }
         }
-    }
-    free(queueFamilies);
+        free(queueFamilies);
 
-//    Global varible that is used throughout various structs
-    uint32_t presentFamily;
-    
-//    Not used past this below code block
-    VkBool32 presentSupport = false;
-    vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, graphicsFamilyIndices, surface, &presentSupport);
-    if (presentSupport)
-    {
-//        Indicate what is the present family being used which also has support.
-        presentFamily = graphicsFamilyIndices;
-        printf("Present graphics family being used: %u\n", presentFamily);
-    }
-    else
-        presentFamily = 0;
-
-    
-    struct graphicsFamiliesAnIndices queueFamilyIndicesInfo =
-    {
-        .graphicsFamilyIndices = graphicsFamilyIndices,
-        .queueCount = queueCount,
-        .presentFamily = presentFamily,
-        .queueFamilyIndices = {
-            graphicsFamilyIndices,
-            presentFamily
-        }
+    //    Global varible that is used throughout various structs
+        uint32_t presentFamily;
         
-    };
-    
-    return queueFamilyIndicesInfo;
+    //    Not used past this below code block
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, graphicsFamilyIndices, surface, &presentSupport);
+        if (presentSupport)
+        {
+    //        Indicate what is the present family being used which also has support.
+            presentFamily = graphicsFamilyIndices;
+            printf("Present graphics family being used: %u\n", presentFamily);
+        }
+        else
+            presentFamily = 0;
 
+        
+        struct graphicsFamiliesAnIndices queueFamilyIndicesInfo =
+        {
+            .graphicsFamilyIndices = graphicsFamilyIndices,
+            .queueCount = queueCount,
+            .presentFamily = presentFamily,
+            .queueFamilyIndices = {
+                graphicsFamilyIndices,
+                presentFamily
+            }
+            
+        };
+        
+        return queueFamilyIndicesInfo;
 }
+
+
 
 VkQueue createGraphicsQueue(VkDevice device, struct graphicsFamiliesAnIndices queueFamilyIndicesInfo)
 {
-    VkQueue graphicsQueue;
-    vkGetDeviceQueue(device, queueFamilyIndicesInfo.presentFamily, queueFamilyIndicesInfo.graphicsFamilyIndices, &graphicsQueue);
-    return graphicsQueue;
+        VkQueue graphicsQueue;
+        vkGetDeviceQueue(device, queueFamilyIndicesInfo.presentFamily, queueFamilyIndicesInfo.graphicsFamilyIndices, &graphicsQueue);
+        return graphicsQueue;
 }
 
-
-VkSurfaceCapabilitiesKHR checkPhysicalDeviceCapabilities(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
-{
-    VkSurfaceCapabilitiesKHR capabilities;
-    //    Temp trn result for process.
-    VkResult surfaceCapabilitesResult = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
-    if (surfaceCapabilitesResult != VK_SUCCESS)
-    {
-        printf("Surface capabilities initialisation failed.\n");
-        printf("return code: %u\n", surfaceCapabilitesResult);
-        
-    }
-    return capabilities;
-}
 
 
 struct availablePresentsAnFormats findPresentsAnFormats(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface)
 {
-    //    Initial these two VK structs...
-    //    more information on stucts and dat inside to come...
-    //    The reason we initialise these here is because we will use them just below, however the resizing is
-    //    happening after we check the result back from surface formats KHR
-    //    This is to prevent them being un-initialised.
-        
-    //    Both these variables are temp malloc that are freed at the end of this code block
+    
+        VkSurfaceCapabilitiesKHR capabilities;
+        //    Temp trn result for process.
+        VkResult surfaceCapabilitesResult = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &capabilities);
+        if (surfaceCapabilitesResult != VK_SUCCESS)
+        {
+            printf("Surface capabilities initialisation failed.\n");
+            printf("return code: %u\n", surfaceCapabilitesResult);
+            
+        }
+ 
         VkSurfaceFormatKHR* formats = malloc(sizeof(VkSurfaceFormatKHR) * 1);
         VkPresentModeKHR* presentModes = malloc(sizeof(VkPresentModeKHR) * 1);
     //    Temp function that is only used in this code block.
@@ -485,14 +477,164 @@ struct availablePresentsAnFormats findPresentsAnFormats(VkPhysicalDevice physica
         free(formats);
         free(presentModes);
     
-    return presentsAnFormatsInfo;
+        
+        /**
+         This block can be added to the above availablePresentsAnFormats struct
+         */
+    
+        presentsAnFormatsInfo.currentTransform = capabilities.currentTransform;
+    //    capabilities is required for this statement. However this
+    //    statement is also not doing anything
+        if (capabilities.currentExtent.width != UINT32_MAX)
+        {
+            printf("\ncapabilities.currentExtent.width != UINT32_MAX...\n");
+            printf("Still to check if this is bad...\n\n");
+        }
+        
+    //    STEP 6.2:: Setting up the action swap chain functionality
+    //    Remember we initialised this extension before in step 5.
+        
+    //    This is a global variable - its also using capabilities
+        presentsAnFormatsInfo.extent = capabilities.currentExtent;
+        
+    //  This is a reoccuring variable that is used to fill several
+    //    data points in other structs
+        presentsAnFormatsInfo.imageCount = capabilities.minImageCount + 1;
+        
+        if (capabilities.maxImageCount > 0 && presentsAnFormatsInfo.imageCount > capabilities.maxImageCount)
+        {
+            presentsAnFormatsInfo.imageCount = capabilities.maxImageCount;
+        }
+        
+        /**
+         End of this code block note
+         */
+    
+        return presentsAnFormatsInfo;
 }
 
 
 
-//Main function
-//TO DO:
-// Abstraction once triangle is done.
+VkSwapchainKHR createSwapChain(VkDevice device, VkSurfaceKHR surface, struct availablePresentsAnFormats presentsAnFormatsInfo, struct graphicsFamiliesAnIndices queueFamilyIndicesInfo)
+{
+        VkSwapchainCreateInfoKHR createSwapChainInfo =
+        {
+            .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+            .surface = surface,
+            .minImageCount = presentsAnFormatsInfo.imageCount,
+            .imageFormat = presentsAnFormatsInfo.availableFormats.format,
+            .imageColorSpace = presentsAnFormatsInfo.availableFormats.colorSpace,
+            .presentMode = presentsAnFormatsInfo.avaiablePresentMode,
+            .imageExtent = presentsAnFormatsInfo.extent,
+            .imageArrayLayers = 1,
+            .preTransform = presentsAnFormatsInfo.currentTransform,
+            .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+            .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+            .clipped = VK_TRUE,
+            .oldSwapchain = VK_NULL_HANDLE
+        };
+        
+        
+        if (queueFamilyIndicesInfo.graphicsFamilyIndices != queueFamilyIndicesInfo.presentFamily)
+        {
+            printf("Graphics family does not equal present family\n\n");
+            createSwapChainInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+            createSwapChainInfo.queueFamilyIndexCount = 2;
+            createSwapChainInfo.pQueueFamilyIndices = queueFamilyIndicesInfo.queueFamilyIndices;
+        }
+        else
+        {
+            printf("Graphics family equal present family\n\n");
+            createSwapChainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            createSwapChainInfo.queueFamilyIndexCount = 0; // Optional
+            createSwapChainInfo.pQueueFamilyIndices = queueFamilyIndicesInfo.queueFamilyIndices; // Optional
+        }
+        
+    //    global variable - this is our swapchain
+        VkSwapchainKHR swapChainKHR;
+    //    temp rtn variable for swapchain creation
+        VkResult swapChainCreateResult = vkCreateSwapchainKHR(device, &createSwapChainInfo, NULL, &swapChainKHR);
+        if (swapChainCreateResult != VK_SUCCESS)
+        {
+            printf("failed to create swap chain!\n");
+            return -1;
+        }
+        
+        return swapChainKHR;
+}
+
+
+
+VkImageView* createImageView(VkDevice device, VkSwapchainKHR swapChainKHR, struct availablePresentsAnFormats presentsAnFormatsInfo)
+{
+    //    local malloc variable that is freed at the end of this code block
+        VkImage* swapChainImages = malloc(sizeof(VkImage) * 1);
+        
+    //    These two functions should really be wrapped in if statements to make sure they are successful
+        vkGetSwapchainImagesKHR(device, swapChainKHR, &presentsAnFormatsInfo.imageCount, NULL);
+        vkGetSwapchainImagesKHR(device, swapChainKHR, &presentsAnFormatsInfo.imageCount, swapChainImages);
+        
+    //    reoccurring variable for tracking swapchain image count
+        int swapChainImagesCount = (int) sizeof(swapChainImages) / (int) swapChainImages[0];
+        
+    //    Global malloc variable that is freed at the end of program
+        VkImageView* swapChainImageViews = malloc(sizeof(VkImageView) * swapChainImagesCount);
+        
+        
+        for (int i = 0; i < swapChainImagesCount; i++)
+        {
+            VkImageViewCreateInfo createImageViewInfo =
+            {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                .image = swapChainImages[i],
+                .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                .format = presentsAnFormatsInfo.availableFormats.format,
+                .components.r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .components.g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .components.b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .components.a = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .subresourceRange.baseMipLevel = 0,
+                .subresourceRange.levelCount = 1,
+                .subresourceRange.baseArrayLayer = 0,
+                .subresourceRange.layerCount = 1
+            };
+            
+            
+            if (vkCreateImageView(device, &createImageViewInfo, NULL, &swapChainImageViews[i]) != VK_SUCCESS) {
+                printf("failed to create image views!\n");
+            }
+
+        }
+        free(swapChainImages);
+        
+        return swapChainImageViews;
+}
+
+
+
+int findSwapChainImageCount(VkDevice device, VkSwapchainKHR swapChainKHR, struct availablePresentsAnFormats presentsAnFormatsInfo)
+{
+        //    local malloc variable that is freed at the end of this code block
+            VkImage* swapChainImages = malloc(sizeof(VkImage) * 1);
+            
+        //    These two functions should really be wrapped in if statements to make sure they are successful
+            vkGetSwapchainImagesKHR(device, swapChainKHR, &presentsAnFormatsInfo.imageCount, NULL);
+            vkGetSwapchainImagesKHR(device, swapChainKHR, &presentsAnFormatsInfo.imageCount, swapChainImages);
+            
+        //    reoccurring variable for tracking swapchain image count
+        int swapChainImagesCount = (int) sizeof(swapChainImages) / (int) swapChainImages[0];
+        free(swapChainImages);
+    
+        return swapChainImagesCount;
+}
+
+
+
+/**
+ This is the main function
+ */
+
 int main(void) {
     
 // Opening glfw window setup...
@@ -511,11 +653,9 @@ int main(void) {
 //    TO DO: FIX Disable functionality
     initValidationLayer(validationLayers, instance_validation_layers);
 
-
 //    proceed with creating a GLFW window.
     GLFWwindow* window = glfwCreateWindow(width, height, WINDOW_NAME, NULL, NULL);
-    
-    
+        
 //    2. Vulkan instance setup
 //    Create our instances
     VkInstance instance = createInstance(validationLayers);
@@ -527,20 +667,12 @@ int main(void) {
 //    4. Create physical device surface
     VkSurfaceKHR surface = createSurface(instance, window);
     
-    
 //    5 :: Queue and graphics Family selections.
-    // Logic to find queue family indices to populate struct with
-//    Just below are the queue variable
     struct graphicsFamiliesAnIndices queueFamilyIndicesInfo = createGraFamInd(physicalDevice, surface);
 
-    
 //  6 :: Setting up a logical devices to interface with.
 //    This is the main device that is used through out the rest of the program
-    
-//    Just like instance, this is a global variable
     VkDevice device = createLogicalDevice(physicalDevice, validationLayers, queueFamilyIndicesInfo.graphicsFamilyIndices, queueFamilyIndicesInfo.queueCount);
-    
-    
     
 //   7.  Completing presentation queue
 //    Global variable that is required for cleanup
@@ -548,152 +680,34 @@ int main(void) {
     
 //    8 : We are now checking for compatibilities we desire and whats possible with the
 //    physicalDevice.
-    
-//    This can be abstracted quickly
-//    Global variable that is required for cleanup
-    VkSurfaceCapabilitiesKHR capabilities = checkPhysicalDeviceCapabilities(physicalDevice, surface);
-
-//    Lets create a custom struct that is needed for the swap chain and the commandbuffers
-//    Could extend this to include VkExtent2D extent &  uint32_t imageCount
     struct availablePresentsAnFormats presentsAnFormatsInfo = findPresentsAnFormats(physicalDevice, surface);
-    
-    
-    /**
-     This block can be added to the above availablePresentsAnFormats struct
-     */
-//    capabilities is required for this statement. However this
-//    statement is also not doing anything
-    if (capabilities.currentExtent.width != UINT32_MAX)
-    {
-        printf("\ncapabilities.currentExtent.width != UINT32_MAX...\n");
-        printf("Still to check if this is bad...\n\n");
-    }
-    
-//    STEP 6.2:: Setting up the action swap chain functionality
-//    Remember we initialised this extension before in step 5.
-    
-//    This is a global variable - its also using capabilities
-    VkExtent2D extent = capabilities.currentExtent;
-    
-//  This is a reoccuring variable that is used to fill several
-//    data points in other structs
-    uint32_t imageCount = capabilities.minImageCount + 1;
-    
-    if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount)
-    {
-        imageCount = capabilities.maxImageCount;
-    }
-    
-    /**
-     End of this code block note
-     */
-    
-    
-    
+
     
 /**
  Creation of the swapchain
  */
     
-    
-//    Global struct that pertains to the swapchain
-    VkSwapchainCreateInfoKHR createSwapChainInfo =
-    {
-        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-        .surface = surface,
-        .minImageCount = imageCount,
-        .imageFormat = presentsAnFormatsInfo.availableFormats.format,
-        .imageColorSpace = presentsAnFormatsInfo.availableFormats.colorSpace,
-        .presentMode = presentsAnFormatsInfo.avaiablePresentMode,
-        .imageExtent = extent,
-        .imageArrayLayers = 1,
-        .preTransform = capabilities.currentTransform,
-        .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-        .clipped = VK_TRUE,
-        .oldSwapchain = VK_NULL_HANDLE
-    };
-    
-    
-    if (queueFamilyIndicesInfo.graphicsFamilyIndices != queueFamilyIndicesInfo.presentFamily)
-    {
-        printf("Graphics family does not equal present family\n\n");
-        createSwapChainInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        createSwapChainInfo.queueFamilyIndexCount = 2;
-        createSwapChainInfo.pQueueFamilyIndices = queueFamilyIndicesInfo.queueFamilyIndices;
-    }
-    else
-    {
-        printf("Graphics family equal present family\n\n");
-        createSwapChainInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        createSwapChainInfo.queueFamilyIndexCount = 0; // Optional
-        createSwapChainInfo.pQueueFamilyIndices = queueFamilyIndicesInfo.queueFamilyIndices; // Optional
-    }
-    
-//    global variable - this is our swapchain
-    VkSwapchainKHR swapChainKHR;
-//    temp rtn variable for swapchain creation
-    VkResult swapChainCreateResult = vkCreateSwapchainKHR(device, &createSwapChainInfo, NULL, &swapChainKHR);
-    if (swapChainCreateResult != VK_SUCCESS)
-    {
-        printf("failed to create swap chain!\n");
-        return -1;
-    }
+//    9. Global struct that pertains to the swapchain
+    VkSwapchainKHR swapChainKHR = createSwapChain(device, surface, presentsAnFormatsInfo, queueFamilyIndicesInfo);
     
     
     /**
      This block pertains to    createImageViews(); from tutorial
      */
-//    local malloc variable that is freed at the end of this code block
-    VkImage* swapChainImages = malloc(sizeof(VkImage) * 1);
-    
-//    These two functions should really be wrapped in if statements to make sure they are successful
-    vkGetSwapchainImagesKHR(device, swapChainKHR, &imageCount, NULL);
-    vkGetSwapchainImagesKHR(device, swapChainKHR, &imageCount, swapChainImages);
-//    reoccurring variable for tracking swapchain image count
-    int swapChainImagesCount = (int) sizeof(swapChainImages) / (int) swapChainImages[0];
-//    Global malloc variable that is freed at the end of program
-    VkImageView* swapChainImageViews = malloc(sizeof(VkImageView) * swapChainImagesCount);
-    
-    
-    for (int i = 0; i < swapChainImagesCount; i++)
-    {
-        VkImageViewCreateInfo createImageViewInfo =
-        {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-            .image = swapChainImages[i],
-            .viewType = VK_IMAGE_VIEW_TYPE_2D,
-            .format = presentsAnFormatsInfo.availableFormats.format,
-            .components.r = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .components.g = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .components.b = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .components.a = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-            .subresourceRange.baseMipLevel = 0,
-            .subresourceRange.levelCount = 1,
-            .subresourceRange.baseArrayLayer = 0,
-            .subresourceRange.layerCount = 1
-        };
-        
-        
-        if (vkCreateImageView(device, &createImageViewInfo, NULL, &swapChainImageViews[i]) != VK_SUCCESS) {
-            printf("failed to create image views!\n");
-        }
-
-    }
-    free(swapChainImages);
-    
-    
+//  10. setup swapchain images
+    VkImageView* swapChainImageViews = createImageView(device, swapChainKHR, presentsAnFormatsInfo);
+//    Had to do this... its an incredibly important variable that I constantly use.
+    int swapChainImagesCount = findSwapChainImageCount(device, swapChainKHR, presentsAnFormatsInfo);
     
     
 
-//    7 :: Graphics pipeline
+//    11 :: Graphics pipeline :: SHADERS
 //    After a long arguous process, we are finally at the graphics pipe line!
 
 //    this whole section can be abstracted into functions and return a single variable
 //    Functions needed: (1) parseShaders; (2) compileShaders; (3) createShaderProgram
-    
-//    7.1 : Shaders (Vertex Shader first)::
+
+//    11.1 : Shaders (Vertex Shader first)::
 //    To Do: Abstract this fundtion
     char vertPath[] =
                     "#version 450\n"
@@ -702,88 +716,26 @@ int main(void) {
                     "vec2 positions[3] = vec2[](vec2(0.0, -0.5),vec2(0.5, 0.5),vec2(-0.5, 0.5));\n"
                     "vec3 colors[3] = vec3[](vec3(1.0, 0.0, 0.0),vec3(0.0, 1.0, 0.0),vec3(0.0, 0.0, 1.0));\n"
                     "void main(){gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);fragColor = colors[gl_VertexIndex];}";
-    
-    
-    shaderc_compiler_t compiler = shaderc_compiler_initialize();
-    
-    shaderc_compilation_result_t compilerVertResult = shaderc_compile_into_spv(compiler, vertPath, sizeof(vertPath) - 1,shaderc_glsl_vertex_shader, "main.vert", "main", NULL);
-    
-         // Do stuff with compilation results.
-    size_t numOfErrors = shaderc_result_get_num_errors(compilerVertResult);
-    if (numOfErrors != 0)
-    {
-        printf("%lu\n", numOfErrors);
-        shaderc_compilation_status compileStatusResults = shaderc_result_get_compilation_status(compilerVertResult);
-        printf("%u\n", compileStatusResults);
-        const char* compilerErrorMessages = shaderc_result_get_error_message(compilerVertResult);
-        printf("Compiler error message: %s\n", compilerErrorMessages);
-        return -1;
-    }
-    
-    
-    size_t compiledVertByteSize = shaderc_result_get_length(compilerVertResult);
-    const char* compiledVertBytes = shaderc_result_get_bytes(compilerVertResult);
-    
-//    Lets create the Vertinfo struct - this
-    VkShaderModuleCreateInfo createVertInfo =
-    {
-        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = compiledVertByteSize,
-        .pCode = (const uint32_t*) compiledVertBytes
-    };
-//
-//
-    VkShaderModule vertShaderModule;
-    if (vkCreateShaderModule(device, &createVertInfo, NULL, &vertShaderModule) != VK_SUCCESS)
-    {
-        perror("failed to create shader module!\n");
-        return -1;
-    }
-    
-    
-//    Shaders (Vertex Shader first)::
-    char fragPath[] =
-                    "#version 450\n"
-                    "#extension GL_ARB_separate_shader_objects : enable\n"
-                    "layout(location = 0) in vec3 fragColor;\n"
-                    "layout(location = 0) out vec4 outColor;\n"
-                    "void main() {outColor = vec4(fragColor, 1.0);}";
-    
-    
-    shaderc_compilation_result_t compilerFragResult = shaderc_compile_into_spv(compiler, fragPath, sizeof(fragPath) - 1,shaderc_glsl_fragment_shader, "main.frag", "main", NULL);
-    
-    numOfErrors = shaderc_result_get_num_errors(compilerFragResult);
-    if (numOfErrors != 0)
-    {
-        printf("%lu\n", numOfErrors);
-        shaderc_compilation_status compileStatusResults = shaderc_result_get_compilation_status(compilerFragResult);
-        printf("%u\n", compileStatusResults);
-        const char* compilerErrorMessages = shaderc_result_get_error_message(compilerFragResult);
-        printf("Compiler error message: %s\n", compilerErrorMessages);
-        return -1;
-    }
-    
-    size_t compiledFragByteSize = shaderc_result_get_length(compilerFragResult);
-    const char* compiledFragBytes = shaderc_result_get_bytes(compilerFragResult);
-    
-//    Lets create the Vertinfo struct - this
-    VkShaderModuleCreateInfo createFragInfo =
-    {
-        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .codeSize = compiledFragByteSize,
-        .pCode = (const uint32_t*) compiledFragBytes
-    };
-//
-//
-    VkShaderModule fragShaderModule;
-    if (vkCreateShaderModule(device, &createFragInfo, NULL, &fragShaderModule) != VK_SUCCESS)
-    {
-        perror("failed to create shader module!\n");
-        return -1;
-    }
-    
-    
+
+
+    VkShaderModule vertShaderModule = createShaderProgram(device, vertPath, "main.vert", "main", 0);
+
+    //    Shaders (Vertex Shader first)::
+        char fragPath[] =
+                        "#version 450\n"
+                        "#extension GL_ARB_separate_shader_objects : enable\n"
+                        "layout(location = 0) in vec3 fragColor;\n"
+                        "layout(location = 0) out vec4 outColor;\n"
+                        "void main() {outColor = vec4(fragColor, 1.0);}";
+
+    VkShaderModule fragShaderModule = createShaderProgram(device, fragPath, "main.frag", "main", 1);
+
+
 //    Lets setup the structs for situating the shaders in the graphics pipline
+//    Reduce this down to another function... We are doubling up on size of the program
+//    by having the shaderModules in three different places... i.e. the original, the struct shaderStageInfo
+//    and the array shaderStages....
+
     
     VkPipelineShaderStageCreateInfo vertShaderStageInfo =
     {
@@ -792,8 +744,8 @@ int main(void) {
         .module = vertShaderModule,
         .pName = "main"
     };
-    
-    
+
+
     VkPipelineShaderStageCreateInfo fragShaderStageInfo =
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -801,19 +753,15 @@ int main(void) {
         .module = fragShaderModule,
         .pName = "main"
     };
-    
+
 //    This is the final outcome of this code block
 //    Furthermore these variables are used for the graphics pipeline
     VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
     
-//    Now that we have our frag shader we free the compiled results, and free the compiler itself
-    shaderc_result_release(compilerVertResult);
-    shaderc_result_release(compilerFragResult);
-    shaderc_compiler_release(compiler);
-
     
 
-//    7.2 : Fixing functions
+//    11.2 These are the fixing functions... i.e. we create the data structs for initialising the
+//    Graphics pipeline and layout.
 //    This is the next major step
 //    In Vulkan you have to be explicit about everything, from viewport size to color blending function.
     
@@ -839,8 +787,8 @@ int main(void) {
     {
         .x = 0.0f,
         .y = 0.0f,
-        .width = (float) extent.width,
-        .height = (float) extent.height,
+        .width = (float) presentsAnFormatsInfo.extent.width,
+        .height = (float) presentsAnFormatsInfo.extent.height,
         .minDepth = 0.0f,
         .maxDepth = 1.0f
     };
@@ -848,7 +796,7 @@ int main(void) {
     VkRect2D scissor =
     {
         .offset = {0, 0},
-        .extent = extent
+        .extent = presentsAnFormatsInfo.extent
     };
     
     VkPipelineViewportStateCreateInfo viewportState =
@@ -1046,8 +994,8 @@ int main(void) {
             .renderPass = renderPass,
             .attachmentCount = 1,
             .pAttachments = attachments,
-            .width = extent.width,
-            .height = extent.height,
+            .width = presentsAnFormatsInfo.extent.width,
+            .height = presentsAnFormatsInfo.extent.height,
             .layers = 1
         };
 
@@ -1129,7 +1077,7 @@ int main(void) {
             .renderPass = renderPass,
             .framebuffer = swapChainFramebuffers[i],
             .renderArea.offset = {0, 0},
-            .renderArea.extent = extent
+            .renderArea.extent = presentsAnFormatsInfo.extent
         };
         
         VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
