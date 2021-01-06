@@ -12,9 +12,9 @@
 
 #include <shaderc/shaderc.h>
 
-
-
-
+//  TO DO:
+//  1. Add parsing function
+//  2. Separate compiling from shader program creation
 
 VkShaderModule createShaderProgram(VkDevice device, char* shaderPath, const char* input_file_name, const char* entry_point_name, int shaderType);
 

@@ -22,8 +22,6 @@
 VkShaderModule createShaderProgram(VkDevice device, char* shaderPath, const char* input_file_name, const char* entry_point_name, int shaderType)
 {
     
-
-        
     shaderc_shader_kind enumShaderType;
     
     switch (shaderType) {
