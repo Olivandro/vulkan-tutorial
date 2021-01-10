@@ -7,15 +7,21 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		991CE11A25AB127C002D2C06 /* graphicFamilyVK.c in Sources */ = {isa = PBXBuildFile; fileRef = 991CE11925AB127C002D2C06 /* graphicFamilyVK.c */; };
+		992DBE0525AB0E6B00BC39C1 /* deviceVK.c in Sources */ = {isa = PBXBuildFile; fileRef = 992DBE0425AB0E6B00BC39C1 /* deviceVK.c */; };
 		995587742595117900AED95E /* shaders.c in Sources */ = {isa = PBXBuildFile; fileRef = 995587732595117900AED95E /* shaders.c */; };
 		9978250A25901F4500F44260 /* initVK.c in Sources */ = {isa = PBXBuildFile; fileRef = 9978250925901F4500F44260 /* initVK.c */; };
 		9980910E257AB12000D38F4E /* libshaderc_shared.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 998090F5257AAF4100D38F4E /* libshaderc_shared.1.dylib */; };
 		99809110257AB12000D38F4E /* libspirv-cross-c-shared.0.36.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 99809101257AB03000D38F4E /* libspirv-cross-c-shared.0.36.0.dylib */; };
 		99809112257AB12000D38F4E /* libSPIRV-Tools-shared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 998090FE257AAFE500D38F4E /* libSPIRV-Tools-shared.dylib */; };
+		99868B8925AB2B66001A038F /* pipeline.c in Sources */ = {isa = PBXBuildFile; fileRef = 99868B8825AB2B66001A038F /* pipeline.c */; };
 		9994453C2528B82E007B6D82 /* libglfw.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 99E5C0EE2523E8CB0071F105 /* libglfw.3.dylib */; };
 		9994453D2528B82E007B6D82 /* libglfw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9994452E2528B641007B6D82 /* libglfw3.a */; };
 		9994453E2528B867007B6D82 /* libvulkan.1.2.148.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 999445302528B66D007B6D82 /* libvulkan.1.2.148.dylib */; };
+		99C5F58425AB2888006D765B /* swapChain.c in Sources */ = {isa = PBXBuildFile; fileRef = 99C5F58325AB2888006D765B /* swapChain.c */; };
 		99E5C0CA2523D7410071F105 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 99E5C0C92523D7410071F105 /* main.c */; };
+		99FC00BC25AB2CFB005791E2 /* commandBuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = 99FC00BB25AB2CFB005791E2 /* commandBuffer.c */; };
+		99FC00C025AB2E77005791E2 /* drawcall.c in Sources */ = {isa = PBXBuildFile; fileRef = 99FC00BF25AB2E77005791E2 /* drawcall.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -32,6 +38,10 @@
 
 /* Begin PBXFileReference section */
 		991BDCB625A5075C00056CA1 /* geninc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = geninc.h; sourceTree = "<group>"; };
+		991CE11825AB127C002D2C06 /* graphicFamilyVK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = graphicFamilyVK.h; sourceTree = "<group>"; };
+		991CE11925AB127C002D2C06 /* graphicFamilyVK.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = graphicFamilyVK.c; sourceTree = "<group>"; };
+		992DBE0325AB0E6B00BC39C1 /* deviceVK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = deviceVK.h; sourceTree = "<group>"; };
+		992DBE0425AB0E6B00BC39C1 /* deviceVK.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = deviceVK.c; sourceTree = "<group>"; };
 		995587722595117900AED95E /* shaders.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = shaders.h; sourceTree = "<group>"; };
 		995587732595117900AED95E /* shaders.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = shaders.c; sourceTree = "<group>"; };
 		99597C4F252927AD00C159CA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -44,6 +54,8 @@
 		998090F5257AAF4100D38F4E /* libshaderc_shared.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libshaderc_shared.1.dylib; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libshaderc_shared.1.dylib"; sourceTree = "<group>"; };
 		998090FE257AAFE500D38F4E /* libSPIRV-Tools-shared.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSPIRV-Tools-shared.dylib"; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libSPIRV-Tools-shared.dylib"; sourceTree = "<group>"; };
 		99809101257AB03000D38F4E /* libspirv-cross-c-shared.0.36.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libspirv-cross-c-shared.0.36.0.dylib"; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libspirv-cross-c-shared.0.36.0.dylib"; sourceTree = "<group>"; };
+		99868B8725AB2B66001A038F /* pipeline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pipeline.h; sourceTree = "<group>"; };
+		99868B8825AB2B66001A038F /* pipeline.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pipeline.c; sourceTree = "<group>"; };
 		9994452E2528B641007B6D82 /* libglfw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglfw3.a; path = "../glfw-3.3.2.bin.MACOS/lib-macos/libglfw3.a"; sourceTree = "<group>"; };
 		999445302528B66D007B6D82 /* libvulkan.1.2.148.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libvulkan.1.2.148.dylib; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libvulkan.1.2.148.dylib"; sourceTree = "<group>"; };
 		999445362528B761007B6D82 /* linmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = linmath.h; path = ../../../linmath.h/linmath.h; sourceTree = "<group>"; };
@@ -53,10 +65,16 @@
 		99A9D4242528CA91000BCD3C /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = "../vulkansdk-macos-1.2.148.1/MoltenVK/macOS/dynamic/libMoltenVK.dylib"; sourceTree = "<group>"; };
 		99C05A532529527A002E0D0C /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		99C05A57252956DC002E0D0C /* LICENCE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LICENCE.md; sourceTree = "<group>"; };
+		99C5F58225AB2888006D765B /* swapChain.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = swapChain.h; sourceTree = "<group>"; };
+		99C5F58325AB2888006D765B /* swapChain.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = swapChain.c; sourceTree = "<group>"; };
 		99E5C0C62523D7410071F105 /* vulkan-tutorial */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "vulkan-tutorial"; sourceTree = BUILT_PRODUCTS_DIR; };
 		99E5C0C92523D7410071F105 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		99E5C0E72523E5060071F105 /* libglfw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglfw3.a; path = "../glfw-3.3.2/src/libglfw3.a"; sourceTree = "<group>"; };
 		99E5C0EE2523E8CB0071F105 /* libglfw.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.3.dylib; path = "../glfw-3.3.2.bin.MACOS/lib-macos/libglfw.3.dylib"; sourceTree = "<group>"; };
+		99FC00BA25AB2CFB005791E2 /* commandBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = commandBuffer.h; sourceTree = "<group>"; };
+		99FC00BB25AB2CFB005791E2 /* commandBuffer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = commandBuffer.c; sourceTree = "<group>"; };
+		99FC00BE25AB2E77005791E2 /* drawcall.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = drawcall.h; sourceTree = "<group>"; };
+		99FC00BF25AB2E77005791E2 /* drawcall.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = drawcall.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,7 +105,13 @@
 		99600DAC25778DC000C9C3B0 /* include */ = {
 			isa = PBXGroup;
 			children = (
+				99C5F58225AB2888006D765B /* swapChain.h */,
+				991CE11825AB127C002D2C06 /* graphicFamilyVK.h */,
+				992DBE0325AB0E6B00BC39C1 /* deviceVK.h */,
 				995587722595117900AED95E /* shaders.h */,
+				99FC00BE25AB2E77005791E2 /* drawcall.h */,
+				99FC00BA25AB2CFB005791E2 /* commandBuffer.h */,
+				99868B8725AB2B66001A038F /* pipeline.h */,
 				9978250825901F4500F44260 /* initVK.h */,
 				991BDCB625A5075C00056CA1 /* geninc.h */,
 			);
@@ -127,6 +151,12 @@
 				99A0379725770030006BA209 /* shaders */,
 				993BE4212525000000EAF159 /* dep */,
 				99E5C0C92523D7410071F105 /* main.c */,
+				99FC00BF25AB2E77005791E2 /* drawcall.c */,
+				99FC00BB25AB2CFB005791E2 /* commandBuffer.c */,
+				99868B8825AB2B66001A038F /* pipeline.c */,
+				99C5F58325AB2888006D765B /* swapChain.c */,
+				991CE11925AB127C002D2C06 /* graphicFamilyVK.c */,
+				992DBE0425AB0E6B00BC39C1 /* deviceVK.c */,
 				99597C4F252927AD00C159CA /* README.md */,
 				995587732595117900AED95E /* shaders.c */,
 				99C05A532529527A002E0D0C /* .gitignore */,
@@ -212,7 +242,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				99FC00C025AB2E77005791E2 /* drawcall.c in Sources */,
+				992DBE0525AB0E6B00BC39C1 /* deviceVK.c in Sources */,
+				99FC00BC25AB2CFB005791E2 /* commandBuffer.c in Sources */,
 				9978250A25901F4500F44260 /* initVK.c in Sources */,
+				99C5F58425AB2888006D765B /* swapChain.c in Sources */,
+				99868B8925AB2B66001A038F /* pipeline.c in Sources */,
+				991CE11A25AB127C002D2C06 /* graphicFamilyVK.c in Sources */,
 				995587742595117900AED95E /* shaders.c in Sources */,
 				99E5C0CA2523D7410071F105 /* main.c in Sources */,
 			);

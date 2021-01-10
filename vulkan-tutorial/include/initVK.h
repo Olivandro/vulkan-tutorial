@@ -8,6 +8,10 @@
 #ifndef initVK_h
 #define initVK_h
 
-#include <stdio.h>
+#include "geninc.h"
+
+VkBool32 initValidationLayer(const char* validationLayers);
+
+VkInstance createInstance(const char* validationLayers);
 
 #endif /* initVK_h */
