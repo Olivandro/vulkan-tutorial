@@ -14,8 +14,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "201"
-            endingLineNumber = "201"
+            startingLineNumber = "209"
+            endingLineNumber = "209"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -30,8 +30,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "31"
-            endingLineNumber = "31"
+            startingLineNumber = "39"
+            endingLineNumber = "39"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -46,8 +46,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "70"
-            endingLineNumber = "70"
+            startingLineNumber = "78"
+            endingLineNumber = "78"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -174,8 +174,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "131"
-            endingLineNumber = "131"
+            startingLineNumber = "139"
+            endingLineNumber = "139"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -190,8 +190,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "133"
-            endingLineNumber = "133"
+            startingLineNumber = "141"
+            endingLineNumber = "141"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -318,8 +318,56 @@
             filePath = "vulkan-tutorial/drawcall.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "54"
-            endingLineNumber = "54"
+            startingLineNumber = "56"
+            endingLineNumber = "56"
+            landmarkName = "drawCall(device, graphicsQueue, swapChainKHR, commandBuffers, syc, MAX_FRAMES_IN_FLIGHT)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "84A8A8C1-3B5A-4656-A21F-2AF801A459CC"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "vulkan-tutorial/swapChain.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "73"
+            endingLineNumber = "73"
+            landmarkName = "createImageView(device, swapChainKHR, presentsAnFormatsInfo)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "5988D69F-8061-4E5C-AFC0-EE50EFC9253E"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "vulkan-tutorial/drawcall.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "73"
+            endingLineNumber = "73"
+            landmarkName = "drawCall(device, graphicsQueue, swapChainKHR, commandBuffers, syc, MAX_FRAMES_IN_FLIGHT)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "9F785744-3456-4390-8B0C-3DBEB8C31733"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "vulkan-tutorial/drawcall.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "78"
+            endingLineNumber = "78"
             landmarkName = "drawCall(device, graphicsQueue, swapChainKHR, commandBuffers, syc, MAX_FRAMES_IN_FLIGHT)"
             landmarkType = "9">
          </BreakpointContent>
