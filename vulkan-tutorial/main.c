@@ -9,6 +9,11 @@
 #include "commandBuffer.h"
 #include "drawcall.h"
 
+/**
+ Maths Library: https://github.com/datenwolf/linmath.h
+ */
+#include "linmath.h"
+
 
 
 
@@ -20,7 +25,10 @@ static const char* validationLayers =
     "VK_LAYER_KHRONOS_validation"
 };
 
-
+struct Vectex {
+    vec2 position;
+    vec3 color;
+} Vertex;
 
 
 

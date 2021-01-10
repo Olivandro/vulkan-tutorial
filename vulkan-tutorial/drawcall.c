@@ -43,6 +43,8 @@ void drawCall(VkDevice device,  VkQueue graphicsQueue, VkSwapchainKHR swapChainK
             VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
             submitInfo.pWaitSemaphores = waitSemaphores;
             submitInfo.pWaitDstStageMask = waitStages;
+    
+            
             submitInfo.pCommandBuffers = &commandBuffers[currentFrame]; // I had to change this from imageIndex - imageIndex goes to 2 (or 3), while the
 //          commandBuffer is the size of 2...
 
@@ -54,7 +56,7 @@ void drawCall(VkDevice device,  VkQueue graphicsQueue, VkSwapchainKHR swapChainK
             if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, syc.inFlightFences[currentFrame]) != VK_SUCCESS) {
                 printf("failed to submit draw command buffer!\n");
             }
-            
+                
             
             VkPresentInfoKHR presentInfo =
             {
@@ -72,9 +74,7 @@ void drawCall(VkDevice device,  VkQueue graphicsQueue, VkSwapchainKHR swapChainK
             presentInfo.pResults = NULL; // Optional
             
             vkQueuePresentKHR(graphicsQueue, &presentInfo);
-    //        vkQueueWaitIdle(graphicsQueue);
             
             currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-    
 
 }

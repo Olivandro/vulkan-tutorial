@@ -37,7 +37,6 @@ struct graphicsFamiliesAnIndices
     
 };
 
-
 struct availablePresentsAnFormats
 {
     VkSurfaceFormatKHR availableFormats;

@@ -63,7 +63,7 @@ VkCommandPool createCommandPool(VkDevice device, uint32_t presentFamily)
 VkCommandBuffer* createCommandBuffers(VkDevice device, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkFramebuffer* swapChainFramebuffers, VkCommandPool commandPool, int swapChainImagesCount, VkExtent2D extent)
 {
 
-    VkCommandBuffer* commandBuffers = malloc(sizeof(VkCommandBuffer) * 3);
+    VkCommandBuffer* commandBuffers = malloc(sizeof(VkCommandBuffer) * (size_t)(swapChainImagesCount + 1));
 
 
     VkCommandBufferAllocateInfo allocInfo =
@@ -71,7 +71,7 @@ VkCommandBuffer* createCommandBuffers(VkDevice device, VkRenderPass renderPass, 
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
         .commandPool = commandPool,
         .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-        .commandBufferCount = (uint32_t) 3 // This use to be sizeof(commandBuffers), however that value is 8 (for number of bits),
+        .commandBufferCount = (uint32_t) swapChainImagesCount + 1 // This use to be sizeof(commandBuffers), however that value is 8 (for number of bits),
 //        When  diveded by [0] of the commandBuffer array, this equals 1. This cause the program to crash as VkSubmitQueue(). value of 2 also
 //        crashes... 3 is the minimum value.
     };
