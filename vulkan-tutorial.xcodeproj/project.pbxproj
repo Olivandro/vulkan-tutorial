@@ -9,14 +9,14 @@
 /* Begin PBXBuildFile section */
 		991CE11A25AB127C002D2C06 /* graphicFamilyVK.c in Sources */ = {isa = PBXBuildFile; fileRef = 991CE11925AB127C002D2C06 /* graphicFamilyVK.c */; };
 		992DBE0525AB0E6B00BC39C1 /* deviceVK.c in Sources */ = {isa = PBXBuildFile; fileRef = 992DBE0425AB0E6B00BC39C1 /* deviceVK.c */; };
+		99503D7525B369080057A303 /* libglfw.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 99E5C0EE2523E8CB0071F105 /* libglfw.3.dylib */; };
+		99503D7625B369080057A303 /* libglfw.3.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 99E5C0EE2523E8CB0071F105 /* libglfw.3.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		995587742595117900AED95E /* shaders.c in Sources */ = {isa = PBXBuildFile; fileRef = 995587732595117900AED95E /* shaders.c */; };
 		9978250A25901F4500F44260 /* initVK.c in Sources */ = {isa = PBXBuildFile; fileRef = 9978250925901F4500F44260 /* initVK.c */; };
 		9980910E257AB12000D38F4E /* libshaderc_shared.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 998090F5257AAF4100D38F4E /* libshaderc_shared.1.dylib */; };
 		99809110257AB12000D38F4E /* libspirv-cross-c-shared.0.36.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 99809101257AB03000D38F4E /* libspirv-cross-c-shared.0.36.0.dylib */; };
 		99809112257AB12000D38F4E /* libSPIRV-Tools-shared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 998090FE257AAFE500D38F4E /* libSPIRV-Tools-shared.dylib */; };
 		99868B8925AB2B66001A038F /* pipeline.c in Sources */ = {isa = PBXBuildFile; fileRef = 99868B8825AB2B66001A038F /* pipeline.c */; };
-		9994453C2528B82E007B6D82 /* libglfw.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 99E5C0EE2523E8CB0071F105 /* libglfw.3.dylib */; };
-		9994453D2528B82E007B6D82 /* libglfw3.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9994452E2528B641007B6D82 /* libglfw3.a */; };
 		9994453E2528B867007B6D82 /* libvulkan.1.2.148.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 999445302528B66D007B6D82 /* libvulkan.1.2.148.dylib */; };
 		99C5F58425AB2888006D765B /* swapChain.c in Sources */ = {isa = PBXBuildFile; fileRef = 99C5F58325AB2888006D765B /* swapChain.c */; };
 		99E5C0CA2523D7410071F105 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 99E5C0C92523D7410071F105 /* main.c */; };
@@ -25,6 +25,17 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		99503D7725B369080057A303 /* Embed Libraries */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				99503D7625B369080057A303 /* libglfw.3.dylib in Embed Libraries */,
+			);
+			name = "Embed Libraries";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		99E5C0C42523D7410071F105 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -85,9 +96,8 @@
 				99809112257AB12000D38F4E /* libSPIRV-Tools-shared.dylib in Frameworks */,
 				9994453E2528B867007B6D82 /* libvulkan.1.2.148.dylib in Frameworks */,
 				99809110257AB12000D38F4E /* libspirv-cross-c-shared.0.36.0.dylib in Frameworks */,
+				99503D7525B369080057A303 /* libglfw.3.dylib in Frameworks */,
 				9980910E257AB12000D38F4E /* libshaderc_shared.1.dylib in Frameworks */,
-				9994453C2528B82E007B6D82 /* libglfw.3.dylib in Frameworks */,
-				9994453D2528B82E007B6D82 /* libglfw3.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -196,6 +206,7 @@
 				99E5C0C22523D7410071F105 /* Sources */,
 				99E5C0C42523D7410071F105 /* CopyFiles */,
 				99E5C0EB2523E7D30071F105 /* Frameworks */,
+				99503D7725B369080057A303 /* Embed Libraries */,
 			);
 			buildRules = (
 			);

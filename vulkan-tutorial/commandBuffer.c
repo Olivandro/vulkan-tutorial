@@ -139,11 +139,12 @@ struct syncAndFence createSyncAndFence(VkDevice device, const int MAX_FRAMES_IN_
     
     struct syncAndFence syc;
     
-    
     syc.imageAvailableSemaphore = malloc(sizeof(VkSemaphore) * MAX_FRAMES_IN_FLIGHT);
     syc.renderFinishedSemaphore = malloc(sizeof(VkSemaphore) * MAX_FRAMES_IN_FLIGHT);
     syc.inFlightFences = malloc(sizeof(VkFence) * MAX_FRAMES_IN_FLIGHT);
     syc.imagesInFlight = malloc(sizeof(VkFence) * swapChainImagesCount);
+
+    
 //    We have to iterate of imageInFlight to set it up with NULL in each array position
     for (int i = 0; i < swapChainImagesCount; i++)
     {

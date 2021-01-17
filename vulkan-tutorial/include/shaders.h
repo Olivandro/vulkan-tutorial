@@ -18,5 +18,9 @@
 
 VkShaderModule createShaderProgram(VkDevice device, char* shaderPath, const char* input_file_name, const char* entry_point_name, int shaderType);
 
+char* parseShader(const char* filepath);
+
+VkPipelineShaderStageCreateInfo* CreateShaderStages(VkShaderModule vertShaderModule, VkShaderModule fragShaderModule);
+
 
 #endif /* shaders_h */

@@ -7,6 +7,7 @@
 
 #include "initVK.h"
 
+//This function has to be expanded on... Currently its hard wired to use only a single layer
 VkBool32 initValidationLayer(const char* validationLayers)
 {
         VkBool32 foundvalidationLayer = 0;
@@ -16,7 +17,6 @@ VkBool32 initValidationLayer(const char* validationLayers)
     //    Vulkan implemenation.
         vkEnumerateInstanceLayerProperties(&layerCount, NULL);
     
-//    WHY?!?!
         const char*  instance_validation_layers = (const char*)validationLayers;
     
     //    If the number of layers is more than 0 we'll create a temp VkLayerProperties struct
@@ -39,8 +39,7 @@ VkBool32 initValidationLayer(const char* validationLayers)
     //        After retrieving the layers we make sure to have the length of our validationLayers
     //        array for iteration.
             int validationLayersLength = sizeof(&validationLayers) / sizeof(&validationLayers[0]);
-            int returnValLayers = sizeof(&instance_layers) / sizeof(&instance_layers[0]);
-            printf("%d\n", returnValLayers);
+            printf("Number of layers avaiable: %u\n", layerCount);
             
     //        At this point we will iterator over our instance_layers struct and compare it
     //        with strcmp (from the string.h) to see if our validation layer request is
@@ -49,7 +48,8 @@ VkBool32 initValidationLayer(const char* validationLayers)
             {
                 foundvalidationLayer = 0;
                 for (int j = 0; j < layerCount; j++) {
-    //                printf("System Validation layer: %s \n", instance_layers[j].layerName);
+//                    printf("System Validation layer: %s \n", instance_layers[j].layerName);
+//                    If strcmp is == 0, i.e. if the strings are the same
                     if (!strcmp(&instance_validation_layers[i], instance_layers[j].layerName))
                     {
                         foundvalidationLayer = 1;
@@ -83,7 +83,7 @@ VkInstance createInstance(const char* validationLayers)
         VkApplicationInfo appInfo;
         VkInstanceCreateInfo createInfo;
         uint32_t glfwExtensionCount = 0;
-        const char** glfwExtensions;
+        const char** glfwExtensions = NULL;
         
     //    2. Initial VK Instance
     //    These values can be #defined varibles at the top of the page

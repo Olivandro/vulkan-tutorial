@@ -89,7 +89,7 @@ VkRenderPass createRenderingPass(VkDevice device, VkFormat VkColourFormat)
 //    Creation of the render pass
     if (vkCreateRenderPass(device, &renderPassInfo, NULL, &renderPass) != VK_SUCCESS) {
         printf("failed to create render pass!\n");
-        return -1;
+        assert();
     }
     
     return renderPass;
@@ -222,7 +222,7 @@ VkPipeline createGraphicsPipeline(VkDevice device, VkPipelineLayout pipelineLayo
     VkPipeline graphicsPipeline;
     if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &graphicsPipelineInfo, NULL, &graphicsPipeline) != VK_SUCCESS) {
         printf("failed to create graphics pipeline!\n");
-        return -1;
+        assert();
     }
     return graphicsPipeline;
 }

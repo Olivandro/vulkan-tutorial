@@ -7,7 +7,6 @@
 #include "shaders.h"
 #include "pipeline.h"
 #include "commandBuffer.h"
-#include "drawcall.h"
 
 /**
  Maths Library: https://github.com/datenwolf/linmath.h
@@ -15,6 +14,9 @@
 #include "linmath.h"
 
 
+//  Path to shader files, NOTE: create new new compiler macros for each individual shader file.
+#define VERTEX_SHADER_FILE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/shaders/shader.vert"
+#define FRAGMENT_SHADER_FILE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/shaders/shader.frag"
 
 
 /**
@@ -25,11 +27,156 @@ static const char* validationLayers =
     "VK_LAYER_KHRONOS_validation"
 };
 
+
+void cleanUpSwapChain(VkDevice device, int swapChainImagesCount, VkSwapchainKHR swapChainKHR, VkImageView* swapChainImageViews, VkPipelineShaderStageCreateInfo* shaderStages, VkPipelineLayout pipelineLayout, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkFramebuffer* swapChainFramebuffers, VkCommandBuffer* commandBuffers, VkCommandPool commandPool)
+{
+// Swapchain clean up
+    //    Lets clear out all the Framebuffers
+    //    We have to run it through a for loop to delete all the nested buffer we created earlier
+    //    similar to the swap chain images just below.
+    for (int i = 0; i < swapChainImagesCount; i++)
+    {
+        vkDestroyFramebuffer(device, swapChainFramebuffers[i], NULL);
+    }
+    free(swapChainFramebuffers);
+
+    vkFreeCommandBuffers(device, commandPool, (uint32_t)(swapChainImagesCount + 1), commandBuffers);
+    free(commandBuffers);
+    
+//    Graphics render pass pipeline creation
+    vkDestroyPipeline(device, graphicsPipeline, NULL);
+    
+//    Rendering pass
+    vkDestroyRenderPass(device, renderPass, NULL);
+    
+//    Initial pipeline
+    vkDestroyPipelineLayout(device, pipelineLayout, NULL);
+    free(shaderStages);
+
+    for (int i = 0; i < swapChainImagesCount; i++)
+    {
+        vkDestroyImageView(device, swapChainImageViews[i], NULL);
+    }
+    free(swapChainImageViews);
+    vkDestroySwapchainKHR(device, swapChainKHR, NULL);
+// END OF SWAPCHAIN CLEANUP
+}
+
+
+void recreateSwapChain(VkDevice device, VkSurfaceKHR surface, struct availablePresentsAnFormats presentsAnFormatsInfo, struct graphicsFamiliesAnIndices queueFamilyIndicesInfo, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule, VkSwapchainKHR swapChainKHR, int swapChainImagesCount, VkImageView* swapChainImageViews, VkPipelineShaderStageCreateInfo* shaderStages, VkPipelineLayout pipelineLayout, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkFramebuffer* swapChainFramebuffers, VkCommandBuffer* commandBuffers, VkCommandPool commandPool)
+{
+    /**
+            Wait idle device
+     */
+    vkDeviceWaitIdle(device);
+    /**
+            cleanup swapchain
+     */
+    cleanUpSwapChain(device, swapChainImagesCount, swapChainKHR, swapChainImageViews, shaderStages, pipelineLayout, renderPass, graphicsPipeline, swapChainFramebuffers, commandBuffers, commandPool);
+    
+    /**
+     Creation of the swapchain
+     */
+        swapChainKHR = createSwapChain(device, surface, presentsAnFormatsInfo, queueFamilyIndicesInfo);
+        swapChainImageViews = createImageView(device, swapChainKHR, presentsAnFormatsInfo);
+        swapChainImagesCount = findSwapChainImageCount(device, swapChainKHR, presentsAnFormatsInfo);
+        shaderStages = CreateShaderStages(vertShaderModule, fragShaderModule);
+        pipelineLayout = createPipelineLayout(device);
+        renderPass = createRenderingPass(device, presentsAnFormatsInfo.availableFormats.format);
+        graphicsPipeline = createGraphicsPipeline(device, pipelineLayout, renderPass, presentsAnFormatsInfo.extent, shaderStages);
+        swapChainFramebuffers = createSwapChainFramebuffers(device, swapChainImageViews, swapChainImagesCount, renderPass, presentsAnFormatsInfo.extent);
+        commandBuffers = createCommandBuffers(device, renderPass, graphicsPipeline, swapChainFramebuffers, commandPool, swapChainImagesCount, presentsAnFormatsInfo.extent);
+}
+
+
+void drawCall(VkDevice device,  VkQueue graphicsQueue, VkSwapchainKHR swapChainKHR, VkCommandBuffer* commandBuffers, struct syncAndFence syc, const int MAX_FRAMES_IN_FLIGHT)
+{
+    
+            static size_t currentFrame = 0;
+    //        We tell our program to wait for the fence that we set up in section 9.
+            vkWaitForFences(device, 1, &syc.inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+            
+            
+            static uint32_t imageIndex = 0;
+            VkResult result = vkAcquireNextImageKHR(device, swapChainKHR, UINT64_MAX, syc.imageAvailableSemaphore[currentFrame], VK_NULL_HANDLE, &imageIndex);
+        
+            if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+                printf("Out of date swap chain image!\n");
+//                recreateSwapChain();
+//                return;
+            } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+                printf("failed to acquire swap chain image!\n");
+            }
+    //        We have to make sure that these two values are equal for it'll crash the progarm
+            if (currentFrame == imageIndex)
+            {
+                if (syc.imagesInFlight[imageIndex] != VK_NULL_HANDLE)
+                {
+                    vkWaitForFences(device, 1, &syc.imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
+                }
+            }
+            
+    //      Mark the image as now being in use by this frame
+            syc.imagesInFlight[imageIndex] = syc.inFlightFences[currentFrame];
+            
+            VkSubmitInfo submitInfo =
+            {
+                .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                .waitSemaphoreCount = 1,
+                .commandBufferCount = 1,
+                .signalSemaphoreCount = 1
+            };
+            
+            VkSemaphore waitSemaphores[] = {syc.imageAvailableSemaphore[currentFrame]};
+            VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+            submitInfo.pWaitSemaphores = waitSemaphores;
+            submitInfo.pWaitDstStageMask = waitStages;
+    
+            
+            submitInfo.pCommandBuffers = &commandBuffers[currentFrame]; // I had to change this from imageIndex - imageIndex goes to 2 (or 3), while the
+//          commandBuffer is the size of 2...
+
+            VkSemaphore signalSemaphores[] = {syc.renderFinishedSemaphore[currentFrame]};
+            submitInfo.pSignalSemaphores = signalSemaphores;
+            
+            vkResetFences(device, 1, &syc.inFlightFences[currentFrame]);
+            
+            if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, syc.inFlightFences[currentFrame]) != VK_SUCCESS) {
+                printf("failed to submit draw command buffer!\n");
+            }
+                
+            
+            VkPresentInfoKHR presentInfo =
+            {
+                .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                .waitSemaphoreCount = 1,
+                .pWaitSemaphores = signalSemaphores
+            };
+            
+
+            VkSwapchainKHR swapChains[] = {swapChainKHR};
+            
+            presentInfo.swapchainCount = 1;
+            presentInfo.pSwapchains = swapChains;
+            presentInfo.pImageIndices = &imageIndex;
+            presentInfo.pResults = NULL; // Optional
+            
+            vkQueuePresentKHR(graphicsQueue, &presentInfo);
+            
+            currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+}
+
+
+
+
+// Vertex buffer Works
 struct Vectex {
     vec2 position;
     vec3 color;
+    VkVertexInputBindingDescription bindingDescription;
+    VkVertexInputAttributeDescription attributeDescriptions;
 } Vertex;
-
 
 
 /**
@@ -39,7 +186,12 @@ struct Vectex {
 int main(void) {
     
 // Opening glfw window setup...
-    glfwInit();
+    if (glfwInit() != GLFW_TRUE)
+    {
+        printf("Error initialising GLFW");
+        assert();
+    }
+
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     
@@ -110,56 +262,16 @@ int main(void) {
 //    Functions needed: (1) parseShaders; (2) compileShaders; (3) createShaderProgram
 
 //    11.1 : Shaders (Vertex Shader first)::
-    char vertPath[] =
-                    "#version 450\n"
-                    "#extension GL_ARB_separate_shader_objects : enable\n"
-                    "layout(location = 0) out vec3 fragColor;\n"
-                    "vec2 positions[3] = vec2[](vec2(0.0, -0.5),vec2(0.5, 0.5),vec2(-0.5, 0.5));\n"
-                    "vec3 colors[3] = vec3[](vec3(1.0, 0.0, 0.0),vec3(0.0, 1.0, 0.0),vec3(0.0, 0.0, 1.0));\n"
-                    "void main(){gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);fragColor = colors[gl_VertexIndex];}";
-
-
-    VkShaderModule vertShaderModule = createShaderProgram(device, vertPath, "main.vert", "main", 0);
+    VkShaderModule vertShaderModule = createShaderProgram(device, VERTEX_SHADER_FILE_PATH, "main.vert", "main", 0);
 
     //    Shaders (Vertex Shader first)::
-        char fragPath[] =
-                        "#version 450\n"
-                        "#extension GL_ARB_separate_shader_objects : enable\n"
-                        "layout(location = 0) in vec3 fragColor;\n"
-                        "layout(location = 0) out vec4 outColor;\n"
-                        "void main() {outColor = vec4(fragColor, 1.0);}";
-
-    VkShaderModule fragShaderModule = createShaderProgram(device, fragPath, "main.frag", "main", 1);
-
-
-//    Lets setup the structs for situating the shaders in the graphics pipline
-//    Reduce this down to another function... We are doubling up on size of the program
-//    by having the shaderModules in three different places... i.e. the original, the struct shaderStageInfo
-//    and the array shaderStages....
+    VkShaderModule fragShaderModule = createShaderProgram(device, FRAGMENT_SHADER_FILE_PATH, "main.frag", "main", 1);
 
     
-    VkPipelineShaderStageCreateInfo vertShaderStageInfo =
-    {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = VK_SHADER_STAGE_VERTEX_BIT,
-        .module = vertShaderModule,
-        .pName = "main"
-    };
-
-
-    VkPipelineShaderStageCreateInfo fragShaderStageInfo =
-    {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-        .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
-        .module = fragShaderModule,
-        .pName = "main"
-    };
-
 //    Final shader stage info for graphics pipeline
-    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+//    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
+    VkPipelineShaderStageCreateInfo* shaderStages = CreateShaderStages(vertShaderModule, fragShaderModule);
     
-    
-
 //    11.2 These are the fixing functions... i.e. we create the data structs for initialising the
 //    Graphics pipeline and layout.
 //    This is the next major step
@@ -220,6 +332,13 @@ int main(void) {
     
     if (vkDeviceWaitIdle(device) == VK_SUCCESS)
     {
+
+            
+
+// Swapchain clean up
+        cleanUpSwapChain(device, swapChainImagesCount, swapChainKHR, swapChainImageViews, shaderStages, pipelineLayout, renderPass, graphicsPipeline, swapChainFramebuffers, commandBuffers, commandPool);
+
+            
 //            Program clean up
 //            Will need to figure out how to abstract this effectively
             free(syc.imagesInFlight);
@@ -233,44 +352,14 @@ int main(void) {
             free(syc.imageAvailableSemaphore);
             free(syc.renderFinishedSemaphore);
             free(syc.inFlightFences);
-            
-             
 
         //    Cleanup for commandpool
             vkDestroyCommandPool(device, commandPool, NULL);
-            free(commandBuffers);
             
-            
-        //    Lets clear out all the Framebuffers
-        //    We have to run it through a for loop to delete all the nested buffer we created earlier
-        //    similar to the swap chain images just below.
-            for (int i = 0; i < swapChainImagesCount; i++)
-            {
-                vkDestroyFramebuffer(device, swapChainFramebuffers[i], NULL);
-            }
-            free(swapChainFramebuffers);
-            
-        //    Graphics render pass pipeline creation
-            vkDestroyPipeline(device, graphicsPipeline, NULL);
-            
-        //    Rendering pass
-            vkDestroyRenderPass(device, renderPass, NULL);
-            
-        //    Initial pipeline
-            vkDestroyPipelineLayout(device, pipelineLayout, NULL);
-            
+        
+        
             vkDestroyShaderModule(device, vertShaderModule, NULL);
             vkDestroyShaderModule(device, fragShaderModule, NULL);
-            
-            
-            
-            for (int i = 0; i < swapChainImagesCount; i++)
-            {
-                vkDestroyImageView(device, swapChainImageViews[i], NULL);
-            }
-            free(swapChainImageViews);
-
-            vkDestroySwapchainKHR(device, swapChainKHR, NULL);
             vkDestroyDevice(device, NULL);
             vkDestroySurfaceKHR(instance, surface, NULL);
             vkDestroyInstance(instance, NULL);

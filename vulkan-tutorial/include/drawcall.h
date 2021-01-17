@@ -10,6 +10,6 @@
 
 #include "geninc.h"
 
-void drawCall(VkDevice device,  VkQueue graphicsQueue, VkSwapchainKHR swapChainKHR, VkCommandBuffer* commandBuffers, struct syncAndFence syc, const int MAX_FRAMES_IN_FLIGHT);
+//void drawCall(VkDevice device,  VkQueue graphicsQueue, VkSwapchainKHR swapChainKHR, VkCommandBuffer* commandBuffers, struct syncAndFence syc, const int MAX_FRAMES_IN_FLIGHT);
 
 #endif /* drawcall_h */

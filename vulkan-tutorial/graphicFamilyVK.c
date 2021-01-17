@@ -39,7 +39,7 @@ struct graphicsFamiliesAnIndices createGraFamInd(VkPhysicalDevice physicalDevice
         free(queueFamilies);
 
     //    Global varible that is used throughout various structs
-        uint32_t presentFamily;
+        uint32_t presentFamily = 0;
         
     //    Not used past this below code block
         VkBool32 presentSupport = false;
@@ -50,8 +50,8 @@ struct graphicsFamiliesAnIndices createGraFamInd(VkPhysicalDevice physicalDevice
             presentFamily = graphicsFamilyIndices;
             printf("Present graphics family being used: %u\n", presentFamily);
         }
-        else
-            presentFamily = 0;
+//        else
+//            presentFamily = 0;
 
         
         struct graphicsFamiliesAnIndices queueFamilyIndicesInfo =

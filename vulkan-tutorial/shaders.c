@@ -21,7 +21,10 @@
 
 VkShaderModule createShaderProgram(VkDevice device, char* shaderPath, const char* input_file_name, const char* entry_point_name, int shaderType)
 {
+//    Parse shader module
+    char* src = parseShader(shaderPath);
     
+//    Determine what type of shader is being used
     shaderc_shader_kind enumShaderType;
     
     switch (shaderType) {
@@ -49,11 +52,12 @@ VkShaderModule createShaderProgram(VkDevice device, char* shaderPath, const char
     }
     
     
-    
+//    initialise our shader compiler
     shaderc_compiler_t compiler = shaderc_compiler_initialize();
-    size_t source_text_size = strlen(shaderPath);
+    size_t source_text_size = strlen(src);
     
-    shaderc_compilation_result_t compilerShaderResult = shaderc_compile_into_spv(compiler, shaderPath, source_text_size, enumShaderType, input_file_name, entry_point_name, NULL);
+//    Compile shader
+    shaderc_compilation_result_t compilerShaderResult = shaderc_compile_into_spv(compiler, src, source_text_size, enumShaderType, input_file_name, entry_point_name, NULL);
     
          // Do Error checking with compilation results.
     size_t numOfErrors = shaderc_result_get_num_errors(compilerShaderResult);
@@ -64,6 +68,7 @@ VkShaderModule createShaderProgram(VkDevice device, char* shaderPath, const char
         printf("%u\n", compileStatusResults);
         const char* compilerErrorMessages = shaderc_result_get_error_message(compilerShaderResult);
         printf("Compiler error message: %s\n", compilerErrorMessages);
+        assert();
     }
     
     
@@ -83,6 +88,7 @@ VkShaderModule createShaderProgram(VkDevice device, char* shaderPath, const char
     if (vkCreateShaderModule(device, &createShaderInfo, NULL, &ShaderModule) != VK_SUCCESS)
     {
         perror("failed to create shader module!\n");
+        assert();
     }
     
     
@@ -90,7 +96,76 @@ VkShaderModule createShaderProgram(VkDevice device, char* shaderPath, const char
     shaderc_result_release(compilerShaderResult);
     shaderc_compiler_release(compiler);
     
+    free(src);
     return ShaderModule;
 
 }
 
+
+char* parseShader(const char* filepath)
+{
+
+    // Open our target file for parsing. This is the shader source
+    FILE *fp = fopen(filepath, "r");
+    if (!fp) {
+        printf("Could not open\n");
+        assert();
+    }
+    
+    // Establish a buffer array for the file stream
+    char buffer[1000];
+
+    // unsigned char ptr array that has the same size array as the buffer and
+    // struct variables. This is probably not needed... Checking in on
+    // that.
+    char* src = malloc(sizeof(char) * 1000);
+
+    // Determiners... These values determine when parsing if source code pertains to
+    // a vertex or a fragment shader.
+    char version[] = "#version";
+
+    while(fgets(buffer, 1000, fp) != NULL)
+    {
+
+        if (strstr(buffer, version))
+        {
+            strcpy(src, buffer);
+        }
+        else
+        {
+            strcat(src, buffer);
+        }
+    }
+    // Lets close that file as we don't need it.
+    fclose(fp);
+
+    // Return our parsed shader sources.
+    return src;
+}
+
+
+VkPipelineShaderStageCreateInfo* CreateShaderStages(VkShaderModule vertShaderModule, VkShaderModule fragShaderModule)
+{
+    VkPipelineShaderStageCreateInfo vertShaderStageInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        .stage = VK_SHADER_STAGE_VERTEX_BIT,
+        .module = vertShaderModule,
+        .pName = "main"
+    };
+
+
+    VkPipelineShaderStageCreateInfo fragShaderStageInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+        .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+        .module = fragShaderModule,
+        .pName = "main"
+    };
+
+//    Final shader stage info for graphics pipeline
+    VkPipelineShaderStageCreateInfo* shaderStages = malloc(sizeof(VkPipelineShaderStageCreateInfo) * 2);
+    shaderStages[0] = vertShaderStageInfo;
+    shaderStages[1] = fragShaderStageInfo;
+    return shaderStages;
+}
