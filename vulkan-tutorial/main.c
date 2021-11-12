@@ -7,9 +7,11 @@
 #include "shaders.h"
 #include "pipeline.h"
 #include "commandBuffer.h"
+#include "drawcall.h"
 
 /**
  Maths Library: https://github.com/datenwolf/linmath.h
+ TO DO: move to geninc.h
  */
 #include "linmath.h"
 
@@ -20,12 +22,35 @@
 
 
 /**
- Global Variables
+ Global Variables to this file only
  */
 static const char* validationLayers =
 {
     "VK_LAYER_KHRONOS_validation"
 };
+
+
+// Vertex buffer Works
+struct Vectex {
+    vec2 position;
+    vec3 color;
+    VkVertexInputBindingDescription bindingDescription;
+    VkVertexInputAttributeDescription attributeDescriptions;
+} Vertex;
+
+
+struct SwapChainObj {
+    VkSwapchainKHR swapChainKHR;
+    VkImageView* swapChainImageViews;
+    int swapChainImagesCount;
+    VkPipelineShaderStageCreateInfo* shaderStages;
+    VkPipelineLayout pipelineLayout;
+    VkRenderPass renderPass;
+    VkPipeline graphicsPipeline;
+    VkFramebuffer* swapChainFramebuffers;
+    VkCommandBuffer* commandBuffers;
+} SwapChainObj;
+
 
 
 void cleanUpSwapChain(VkDevice device, int swapChainImagesCount, VkSwapchainKHR swapChainKHR, VkImageView* swapChainImageViews, VkPipelineShaderStageCreateInfo* shaderStages, VkPipelineLayout pipelineLayout, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkFramebuffer* swapChainFramebuffers, VkCommandBuffer* commandBuffers, VkCommandPool commandPool)
@@ -89,94 +114,7 @@ void recreateSwapChain(VkDevice device, VkSurfaceKHR surface, struct availablePr
 }
 
 
-void drawCall(VkDevice device,  VkQueue graphicsQueue, VkSwapchainKHR swapChainKHR, VkCommandBuffer* commandBuffers, struct syncAndFence syc, const int MAX_FRAMES_IN_FLIGHT)
-{
-    
-            static size_t currentFrame = 0;
-    //        We tell our program to wait for the fence that we set up in section 9.
-            vkWaitForFences(device, 1, &syc.inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-            
-            
-            static uint32_t imageIndex = 0;
-            VkResult result = vkAcquireNextImageKHR(device, swapChainKHR, UINT64_MAX, syc.imageAvailableSemaphore[currentFrame], VK_NULL_HANDLE, &imageIndex);
-        
-            if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-                printf("Out of date swap chain image!\n");
-//                recreateSwapChain();
-//                return;
-            } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-                printf("failed to acquire swap chain image!\n");
-            }
-    //        We have to make sure that these two values are equal for it'll crash the progarm
-            if (currentFrame == imageIndex)
-            {
-                if (syc.imagesInFlight[imageIndex] != VK_NULL_HANDLE)
-                {
-                    vkWaitForFences(device, 1, &syc.imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
-                }
-            }
-            
-    //      Mark the image as now being in use by this frame
-            syc.imagesInFlight[imageIndex] = syc.inFlightFences[currentFrame];
-            
-            VkSubmitInfo submitInfo =
-            {
-                .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                .waitSemaphoreCount = 1,
-                .commandBufferCount = 1,
-                .signalSemaphoreCount = 1
-            };
-            
-            VkSemaphore waitSemaphores[] = {syc.imageAvailableSemaphore[currentFrame]};
-            VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-            submitInfo.pWaitSemaphores = waitSemaphores;
-            submitInfo.pWaitDstStageMask = waitStages;
-    
-            
-            submitInfo.pCommandBuffers = &commandBuffers[currentFrame]; // I had to change this from imageIndex - imageIndex goes to 2 (or 3), while the
-//          commandBuffer is the size of 2...
 
-            VkSemaphore signalSemaphores[] = {syc.renderFinishedSemaphore[currentFrame]};
-            submitInfo.pSignalSemaphores = signalSemaphores;
-            
-            vkResetFences(device, 1, &syc.inFlightFences[currentFrame]);
-            
-            if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, syc.inFlightFences[currentFrame]) != VK_SUCCESS) {
-                printf("failed to submit draw command buffer!\n");
-            }
-                
-            
-            VkPresentInfoKHR presentInfo =
-            {
-                .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-                .waitSemaphoreCount = 1,
-                .pWaitSemaphores = signalSemaphores
-            };
-            
-
-            VkSwapchainKHR swapChains[] = {swapChainKHR};
-            
-            presentInfo.swapchainCount = 1;
-            presentInfo.pSwapchains = swapChains;
-            presentInfo.pImageIndices = &imageIndex;
-            presentInfo.pResults = NULL; // Optional
-            
-            vkQueuePresentKHR(graphicsQueue, &presentInfo);
-            
-            currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
-}
-
-
-
-
-// Vertex buffer Works
-struct Vectex {
-    vec2 position;
-    vec3 color;
-    VkVertexInputBindingDescription bindingDescription;
-    VkVertexInputAttributeDescription attributeDescriptions;
-} Vertex;
 
 
 /**
@@ -191,6 +129,7 @@ int main(void) {
         printf("Error initialising GLFW");
         assert();
     }
+
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
@@ -307,7 +246,6 @@ int main(void) {
     
     
 //  13 : rasterisation and Presentation of the triangle that we are drawing
-    
 //    Both variables are requested throughout the rest of the program
     const int MAX_FRAMES_IN_FLIGHT = 2;
     

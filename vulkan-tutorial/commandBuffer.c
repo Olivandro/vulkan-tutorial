@@ -165,6 +165,7 @@ struct syncAndFence createSyncAndFence(VkDevice device, const int MAX_FRAMES_IN_
     
     for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
+        printf("%c\n", i);
         if (vkCreateSemaphore(device, &semaphoreInfo, NULL, &syc.imageAvailableSemaphore[i]) != VK_SUCCESS ||
             vkCreateSemaphore(device, &semaphoreInfo, NULL, &syc.renderFinishedSemaphore[i]) != VK_SUCCESS ||
             vkCreateFence(device, &fenceInfo, NULL, &syc.inFlightFences[i]) != VK_SUCCESS ) {

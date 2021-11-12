@@ -192,7 +192,7 @@ struct availablePresentsAnFormats findPresentsAnFormats(VkPhysicalDevice physica
         
     //  This is a reoccuring variable that is used to fill several
     //    data points in other structs
-        presentsAnFormatsInfo.imageCount = capabilities.minImageCount + 1;
+    presentsAnFormatsInfo.imageCount = capabilities.minImageCount; // + 1;
         
         if (capabilities.maxImageCount > 0 && presentsAnFormatsInfo.imageCount > capabilities.maxImageCount)
         {
