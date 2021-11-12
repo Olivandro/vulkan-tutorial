@@ -21,7 +21,6 @@
 		99C5F58425AB2888006D765B /* swapChain.c in Sources */ = {isa = PBXBuildFile; fileRef = 99C5F58325AB2888006D765B /* swapChain.c */; };
 		99E5C0CA2523D7410071F105 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 99E5C0C92523D7410071F105 /* main.c */; };
 		99FC00BC25AB2CFB005791E2 /* commandBuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = 99FC00BB25AB2CFB005791E2 /* commandBuffer.c */; };
-		99FC00C025AB2E77005791E2 /* drawcall.c in Sources */ = {isa = PBXBuildFile; fileRef = 99FC00BF25AB2E77005791E2 /* drawcall.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -84,8 +83,6 @@
 		99E5C0EE2523E8CB0071F105 /* libglfw.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.3.dylib; path = "../glfw-3.3.2.bin.MACOS/lib-macos/libglfw.3.dylib"; sourceTree = "<group>"; };
 		99FC00BA25AB2CFB005791E2 /* commandBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = commandBuffer.h; sourceTree = "<group>"; };
 		99FC00BB25AB2CFB005791E2 /* commandBuffer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = commandBuffer.c; sourceTree = "<group>"; };
-		99FC00BE25AB2E77005791E2 /* drawcall.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = drawcall.h; sourceTree = "<group>"; };
-		99FC00BF25AB2E77005791E2 /* drawcall.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = drawcall.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -119,7 +116,6 @@
 				991CE11825AB127C002D2C06 /* graphicFamilyVK.h */,
 				992DBE0325AB0E6B00BC39C1 /* deviceVK.h */,
 				995587722595117900AED95E /* shaders.h */,
-				99FC00BE25AB2E77005791E2 /* drawcall.h */,
 				99FC00BA25AB2CFB005791E2 /* commandBuffer.h */,
 				99868B8725AB2B66001A038F /* pipeline.h */,
 				9978250825901F4500F44260 /* initVK.h */,
@@ -164,7 +160,6 @@
 				99A0379725770030006BA209 /* shaders */,
 				993BE4212525000000EAF159 /* dep */,
 				99E5C0C92523D7410071F105 /* main.c */,
-				99FC00BF25AB2E77005791E2 /* drawcall.c */,
 				99FC00BB25AB2CFB005791E2 /* commandBuffer.c */,
 				99868B8825AB2B66001A038F /* pipeline.c */,
 				99C5F58325AB2888006D765B /* swapChain.c */,
@@ -253,7 +248,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				99FC00C025AB2E77005791E2 /* drawcall.c in Sources */,
 				992DBE0525AB0E6B00BC39C1 /* deviceVK.c in Sources */,
 				99FC00BC25AB2CFB005791E2 /* commandBuffer.c in Sources */,
 				9978250A25901F4500F44260 /* initVK.c in Sources */,
