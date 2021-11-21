@@ -95,6 +95,8 @@ void cleanUpSwapChain(VkDevice device, struct SwapChainObj swapChainObj)
 
 /**
     Swapped over to struct SwapChainObj swapChainObj
+    PROBLEM: This function currently does not recreate the swapchain successfully...
+    IDEA: Instead of  allowing for flexible resizing, will push to create renderer that resizes to only selection of window sizes.
  */
 void recreateSwapChain(VkDevice device, VkSurfaceKHR surface, struct availablePresentsAnFormats presentsAnFormatsInfo, struct graphicsFamiliesAnIndices queueFamilyIndicesInfo, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule, struct SwapChainObj swapChainObj)
 {
@@ -123,7 +125,8 @@ void recreateSwapChain(VkDevice device, VkSurfaceKHR surface, struct availablePr
 
 // Implementing Struct SwapChainObj, going to try and pass reference to see what happens.
 // VkSwapchainKHR swapChainKHR, VkCommandBuffer* commandBuffers
-void drawCall(VkDevice device, VkQueue graphicsQueue, VkSurfaceKHR surface, struct availablePresentsAnFormats* presentsAnFormatsInfo, struct graphicsFamiliesAnIndices* queueFamilyIndicesInfo, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule, struct SwapChainObj* swapChainObj, struct syncAndFence syc, const int MAX_FRAMES_IN_FLIGHT)
+//  Pased a reference to swapChainObj to reduce variable overhead.
+void drawCall(VkDevice device, VkQueue graphicsQueue, struct SwapChainObj* swapChainObj, struct syncAndFence syc, const int MAX_FRAMES_IN_FLIGHT)
 {
     
             static size_t currentFrame = 0;
@@ -135,8 +138,9 @@ void drawCall(VkDevice device, VkQueue graphicsQueue, VkSurfaceKHR surface, stru
         
             if (result == VK_ERROR_OUT_OF_DATE_KHR) {
                 printf("Out of date swap chain image!\n");
-                recreateSwapChain(device, surface, *presentsAnFormatsInfo, *queueFamilyIndicesInfo, vertShaderModule, fragShaderModule, *swapChainObj);
-                return;
+//                This function does not work currently...
+//                recreateSwapChain(device, surface, presentsAnFormatsInfo, queueFamilyIndicesInfo, vertShaderModule, fragShaderModule, swapChainObj);
+//                return;
             } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
                 printf("failed to acquire swap chain image!\n");
             }
@@ -191,7 +195,16 @@ void drawCall(VkDevice device, VkQueue graphicsQueue, VkSurfaceKHR surface, stru
             presentInfo.pImageIndices = &imageIndex;
             presentInfo.pResults = NULL; // Optional
             
-            vkQueuePresentKHR(graphicsQueue, &presentInfo);
+            result = vkQueuePresentKHR(graphicsQueue, &presentInfo);
+    
+            if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+                printf("Out of date swap chain image!\n");
+//                This function does not work currently...
+//                recreateSwapChain(device, surface, presentsAnFormatsInfo, queueFamilyIndicesInfo, vertShaderModule, fragShaderModule, swapChainObj);
+//                return;
+            } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+                printf("failed to acquire swap chain image!\n");
+            }
             
             currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
@@ -216,6 +229,8 @@ int main(void) {
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+//    Currently can resize but causes a "Out of date swap chain image!\n" error message.
+//    Cannot recreate swap chain at the moment.
     
     static uint32_t width = 800;
     static uint32_t height = 600;
@@ -371,7 +386,7 @@ int main(void) {
         /**
         Draw call
          */
-        drawCall(device, graphicsQueue, surface, &presentsAnFormatsInfo, &queueFamilyIndicesInfo, vertShaderModule, fragShaderModule, &swapChainObj, syc, MAX_FRAMES_IN_FLIGHT);
+        drawCall(device, graphicsQueue, &swapChainObj, syc, MAX_FRAMES_IN_FLIGHT);
         
     }
 
