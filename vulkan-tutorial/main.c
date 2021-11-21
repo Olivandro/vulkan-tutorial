@@ -56,43 +56,47 @@ struct SwapChainObj {
 } SwapChainObj;
 
 
-
-void cleanUpSwapChain(VkDevice device, int swapChainImagesCount, VkSwapchainKHR swapChainKHR, VkImageView* swapChainImageViews, VkPipelineShaderStageCreateInfo* shaderStages, VkPipelineLayout pipelineLayout, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkFramebuffer* swapChainFramebuffers, VkCommandBuffer* commandBuffers, VkCommandPool commandPool)
+/**
+    Swapped over to struct SwapChainObj swapChainObj
+ */
+void cleanUpSwapChain(VkDevice device, struct SwapChainObj swapChainObj)
 {
 // Swapchain clean up
     //    Lets clear out all the Framebuffers
     //    We have to run it through a for loop to delete all the nested buffer we created earlier
     //    similar to the swap chain images just below.
-    for (int i = 0; i < swapChainImagesCount; i++)
+    for (int i = 0; i < swapChainObj.swapChainImagesCount; i++)
     {
-        vkDestroyFramebuffer(device, swapChainFramebuffers[i], NULL);
+        vkDestroyFramebuffer(device, swapChainObj.swapChainFramebuffers[i], NULL);
     }
-    free(swapChainFramebuffers);
+    free(swapChainObj.swapChainFramebuffers);
 
-    vkFreeCommandBuffers(device, commandPool, (uint32_t)(swapChainImagesCount + 1), commandBuffers);
-    free(commandBuffers);
+    vkFreeCommandBuffers(device, swapChainObj.commandPool, (uint32_t)(swapChainObj.swapChainImagesCount + 1), swapChainObj.commandBuffers);
+    free(swapChainObj.commandBuffers);
     
 //    Graphics render pass pipeline creation
-    vkDestroyPipeline(device, graphicsPipeline, NULL);
+    vkDestroyPipeline(device, swapChainObj.graphicsPipeline, NULL);
     
 //    Rendering pass
-    vkDestroyRenderPass(device, renderPass, NULL);
+    vkDestroyRenderPass(device, swapChainObj.renderPass, NULL);
     
 //    Initial pipeline
-    vkDestroyPipelineLayout(device, pipelineLayout, NULL);
-    free(shaderStages);
+    vkDestroyPipelineLayout(device, swapChainObj.pipelineLayout, NULL);
+    free(swapChainObj.shaderStages);
 
-    for (int i = 0; i < swapChainImagesCount; i++)
+    for (int i = 0; i < swapChainObj.swapChainImagesCount; i++)
     {
-        vkDestroyImageView(device, swapChainImageViews[i], NULL);
+        vkDestroyImageView(device, swapChainObj.swapChainImageViews[i], NULL);
     }
-    free(swapChainImageViews);
-    vkDestroySwapchainKHR(device, swapChainKHR, NULL);
+    free(swapChainObj.swapChainImageViews);
+    vkDestroySwapchainKHR(device, swapChainObj.swapChainKHR, NULL);
 // END OF SWAPCHAIN CLEANUP
 }
 
-
-void recreateSwapChain(VkDevice device, VkSurfaceKHR surface, struct availablePresentsAnFormats presentsAnFormatsInfo, struct graphicsFamiliesAnIndices queueFamilyIndicesInfo, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule, VkSwapchainKHR swapChainKHR, int swapChainImagesCount, VkImageView* swapChainImageViews, VkPipelineShaderStageCreateInfo* shaderStages, VkPipelineLayout pipelineLayout, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkFramebuffer* swapChainFramebuffers, VkCommandBuffer* commandBuffers, VkCommandPool commandPool)
+/**
+    Swapped over to struct SwapChainObj swapChainObj
+ */
+void recreateSwapChain(VkDevice device, VkSurfaceKHR surface, struct availablePresentsAnFormats presentsAnFormatsInfo, struct graphicsFamiliesAnIndices queueFamilyIndicesInfo, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule, struct SwapChainObj swapChainObj)
 {
     /**
             Wait idle device
@@ -101,20 +105,20 @@ void recreateSwapChain(VkDevice device, VkSurfaceKHR surface, struct availablePr
     /**
             cleanup swapchain
      */
-    cleanUpSwapChain(device, swapChainImagesCount, swapChainKHR, swapChainImageViews, shaderStages, pipelineLayout, renderPass, graphicsPipeline, swapChainFramebuffers, commandBuffers, commandPool);
+    cleanUpSwapChain(device, swapChainObj);
     
     /**
      Creation of the swapchain
      */
-        swapChainKHR = createSwapChain(device, surface, presentsAnFormatsInfo, queueFamilyIndicesInfo);
-        swapChainImageViews = createImageView(device, swapChainKHR, presentsAnFormatsInfo);
-        swapChainImagesCount = findSwapChainImageCount(device, swapChainKHR, presentsAnFormatsInfo);
-        shaderStages = CreateShaderStages(vertShaderModule, fragShaderModule);
-        pipelineLayout = createPipelineLayout(device);
-        renderPass = createRenderingPass(device, presentsAnFormatsInfo.availableFormats.format);
-        graphicsPipeline = createGraphicsPipeline(device, pipelineLayout, renderPass, presentsAnFormatsInfo.extent, shaderStages);
-        swapChainFramebuffers = createSwapChainFramebuffers(device, swapChainImageViews, swapChainImagesCount, renderPass, presentsAnFormatsInfo.extent);
-        commandBuffers = createCommandBuffers(device, renderPass, graphicsPipeline, swapChainFramebuffers, commandPool, swapChainImagesCount, presentsAnFormatsInfo.extent);
+        swapChainObj.swapChainKHR = createSwapChain(device, surface, presentsAnFormatsInfo, queueFamilyIndicesInfo);
+        swapChainObj.swapChainImageViews = createImageView(device, swapChainObj.swapChainKHR, presentsAnFormatsInfo);
+        swapChainObj.swapChainImagesCount = findSwapChainImageCount(device, swapChainObj.swapChainKHR, presentsAnFormatsInfo);
+        swapChainObj.shaderStages = CreateShaderStages(vertShaderModule, fragShaderModule);
+        swapChainObj.pipelineLayout = createPipelineLayout(device);
+        swapChainObj.renderPass = createRenderingPass(device, presentsAnFormatsInfo.availableFormats.format);
+        swapChainObj.graphicsPipeline = createGraphicsPipeline(device, swapChainObj.pipelineLayout, swapChainObj.renderPass, presentsAnFormatsInfo.extent, swapChainObj.shaderStages);
+        swapChainObj.swapChainFramebuffers = createSwapChainFramebuffers(device, swapChainObj.swapChainImageViews, swapChainObj.swapChainImagesCount, swapChainObj.renderPass, presentsAnFormatsInfo.extent);
+        swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent);
 }
 
 
@@ -255,19 +259,24 @@ int main(void) {
  Creation of the swapchain
  */
     
-//    9. Global struct that pertains to the swapchain
-    VkSwapchainKHR swapChainKHR = createSwapChain(device, surface, presentsAnFormatsInfo, queueFamilyIndicesInfo);
     
+//    9. Global struct that pertains to the swapchain
+//    VkSwapchainKHR swapChainKHR = createSwapChain(device, surface, presentsAnFormatsInfo, queueFamilyIndicesInfo);
+//    Initiallising struct SwapChainObj swapChainObj
+    struct SwapChainObj swapChainObj =
+    {
+        .swapChainKHR = createSwapChain(device, surface, presentsAnFormatsInfo, queueFamilyIndicesInfo)
+    };
     
 /**
  This block pertains to    createImageViews(); from tutorial
  */
 //  10. setup swapchain images
-    VkImageView* swapChainImageViews = createImageView(device, swapChainKHR, presentsAnFormatsInfo);
-    
+//    VkImageView* swapChainImageViews = createImageView(device, swapChainKHR, presentsAnFormatsInfo);
+    swapChainObj.swapChainImageViews = createImageView(device, swapChainObj.swapChainKHR, presentsAnFormatsInfo);
 //    Had to do this... its an incredibly important variable that I constantly use.
-    int swapChainImagesCount = findSwapChainImageCount(device, swapChainKHR, presentsAnFormatsInfo);
-    
+//    int swapChainImagesCount = findSwapChainImageCount(device, swapChainKHR, presentsAnFormatsInfo);
+    swapChainObj.swapChainImagesCount = findSwapChainImageCount(device, swapChainObj.swapChainKHR, presentsAnFormatsInfo);
     
 /**
  Creating the graphics pipeline - includes 5 steps
@@ -300,7 +309,8 @@ int main(void) {
     
 //    Final shader stage info for graphics pipeline
 //    VkPipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
-    VkPipelineShaderStageCreateInfo* shaderStages = CreateShaderStages(vertShaderModule, fragShaderModule);
+//    VkPipelineShaderStageCreateInfo* shaderStages = CreateShaderStages(vertShaderModule, fragShaderModule);
+    swapChainObj.shaderStages = CreateShaderStages(vertShaderModule, fragShaderModule);
     
 //    11.2 These are the fixing functions... i.e. we create the data structs for initialising the
 //    Graphics pipeline and layout.
@@ -308,19 +318,20 @@ int main(void) {
 //    In Vulkan you have to be explicit about everything, from viewport size to color blending function.
    
 //    11.3 : Creating the graphics pipeline
-    VkPipelineLayout pipelineLayout = createPipelineLayout(device);
+//    VkPipelineLayout pipelineLayout = createPipelineLayout(device);
+    swapChainObj.pipelineLayout = createPipelineLayout(device);
     
     
 //    11.4 : Creating the rendering pass
-    VkRenderPass renderPass = createRenderingPass(device, presentsAnFormatsInfo.availableFormats.format);
-    
+//    VkRenderPass renderPass = createRenderingPass(device, presentsAnFormatsInfo.availableFormats.format);
+    swapChainObj.renderPass = createRenderingPass(device, presentsAnFormatsInfo.availableFormats.format);
 
 //    11.5 Create the Graphics pipeline
 //    TO DO:
 //    Vertex data input will happen here. Have to decide how to implement it.. i.e. by reference or single internal
 //    verible..
-    VkPipeline graphicsPipeline = createGraphicsPipeline(device, pipelineLayout, renderPass, presentsAnFormatsInfo.extent, shaderStages);
-    
+//    VkPipeline graphicsPipeline = createGraphicsPipeline(device, pipelineLayout, renderPass, presentsAnFormatsInfo.extent, shaderStages);
+    swapChainObj.graphicsPipeline = createGraphicsPipeline(device, swapChainObj.pipelineLayout, swapChainObj.renderPass, presentsAnFormatsInfo.extent, swapChainObj.shaderStages);
     
 /**
  Create the Command buffer, frame buffer and render pass command pool
@@ -328,22 +339,24 @@ int main(void) {
  */
 //    12 : setting up the command buffer and frame buffers plue the render
 //    pass command pool
-    VkFramebuffer* swapChainFramebuffers = createSwapChainFramebuffers(device, swapChainImageViews, swapChainImagesCount, renderPass, presentsAnFormatsInfo.extent);
+//    VkFramebuffer* swapChainFramebuffers = createSwapChainFramebuffers(device, swapChainImageViews, swapChainImagesCount, renderPass, presentsAnFormatsInfo.extent);
+    swapChainObj.swapChainFramebuffers = createSwapChainFramebuffers(device, swapChainObj.swapChainImageViews, swapChainObj.swapChainImagesCount, swapChainObj.renderPass, presentsAnFormatsInfo.extent);
     
     
 //    12.2 : Lets create the commandpool now..
-    VkCommandPool commandPool = createCommandPool(device, queueFamilyIndicesInfo.presentFamily);
-    
+//    VkCommandPool commandPool = createCommandPool(device, queueFamilyIndicesInfo.presentFamily);
+    swapChainObj.commandPool = createCommandPool(device, queueFamilyIndicesInfo.presentFamily);
 
 //    12.3 : Creating the command buffer
-    VkCommandBuffer* commandBuffers = createCommandBuffers(device, renderPass, graphicsPipeline, swapChainFramebuffers, commandPool, swapChainImagesCount, presentsAnFormatsInfo.extent);
+//    VkCommandBuffer* commandBuffers = createCommandBuffers(device, renderPass, graphicsPipeline, swapChainFramebuffers, commandPool, swapChainImagesCount, presentsAnFormatsInfo.extent);
+    swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent);
     
     
 //  13 : rasterisation and Presentation of the triangle that we are drawing
 //    Both variables are requested throughout the rest of the program
     const int MAX_FRAMES_IN_FLIGHT = 2;
     
-    struct syncAndFence syc = createSyncAndFence(device, MAX_FRAMES_IN_FLIGHT, swapChainImagesCount);
+    struct syncAndFence syc = createSyncAndFence(device, MAX_FRAMES_IN_FLIGHT, swapChainObj.swapChainImagesCount);
     
     
 
@@ -357,7 +370,7 @@ int main(void) {
         /**
         Draw call
          */
-        drawCall(device, graphicsQueue, swapChainKHR, commandBuffers, syc, MAX_FRAMES_IN_FLIGHT);
+        drawCall(device, graphicsQueue, swapChainObj.swapChainKHR, swapChainObj.commandBuffers, syc, MAX_FRAMES_IN_FLIGHT);
         
     }
 
@@ -366,7 +379,7 @@ int main(void) {
     {
 
         // Swapchain clean up
-        cleanUpSwapChain(device, swapChainImagesCount, swapChainKHR, swapChainImageViews, shaderStages, pipelineLayout, renderPass, graphicsPipeline, swapChainFramebuffers, commandBuffers, commandPool);
+        cleanUpSwapChain(device, swapChainObj);
 
             
         // Program clean up
@@ -384,7 +397,7 @@ int main(void) {
         free(syc.inFlightFences);
 
         // Cleanup for commandpool
-        vkDestroyCommandPool(device, commandPool, NULL);
+        vkDestroyCommandPool(device, swapChainObj.commandPool, NULL);
         
     
     
