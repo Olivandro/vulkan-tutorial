@@ -325,6 +325,7 @@
 					"/Users/olivandro/Apps/vulkansdk-macos-1.2.148.1/macOS/include/**",
 					"/Users/olivandro/Apps/vulkan-tutorial/dep/include/",
 					"/Users/olivandro/Apps/vulkan-tutorial/include/**",
+					"/User/olivandro/Apps/vulkan-tutorial/dep",
 				);
 				"LIBRARY_SEARCH_PATHS[arch=*]" = (
 					"/Users/olivandro/Apps/vulkansdk-macos-1.2.148.1/macOS/lib/**",

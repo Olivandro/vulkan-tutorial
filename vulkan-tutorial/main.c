@@ -1,5 +1,5 @@
 
-#include "include/geninc.h"
+#include "geninc.h"
 #include "initVK.h"
 #include "deviceVK.h"
 #include "graphicFamilyVK.h"
@@ -121,8 +121,9 @@ void recreateSwapChain(VkDevice device, VkSurfaceKHR surface, struct availablePr
         swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent);
 }
 
-
-void drawCall(VkDevice device, VkQueue graphicsQueue, VkSwapchainKHR swapChainKHR, VkCommandBuffer* commandBuffers, struct syncAndFence syc, const int MAX_FRAMES_IN_FLIGHT)
+// Implementing Struct SwapChainObj, going to try and pass reference to see what happens.
+// VkSwapchainKHR swapChainKHR, VkCommandBuffer* commandBuffers
+void drawCall(VkDevice device, VkQueue graphicsQueue, VkSurfaceKHR surface, struct availablePresentsAnFormats* presentsAnFormatsInfo, struct graphicsFamiliesAnIndices* queueFamilyIndicesInfo, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule, struct SwapChainObj* swapChainObj, struct syncAndFence syc, const int MAX_FRAMES_IN_FLIGHT)
 {
     
             static size_t currentFrame = 0;
@@ -130,12 +131,12 @@ void drawCall(VkDevice device, VkQueue graphicsQueue, VkSwapchainKHR swapChainKH
             vkWaitForFences(device, 1, &syc.inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
             
             static uint32_t imageIndex = 0;
-            VkResult result = vkAcquireNextImageKHR(device, swapChainKHR, UINT64_MAX, syc.imageAvailableSemaphore[currentFrame], VK_NULL_HANDLE, &imageIndex);
+            VkResult result = vkAcquireNextImageKHR(device, swapChainObj->swapChainKHR, UINT64_MAX, syc.imageAvailableSemaphore[currentFrame], VK_NULL_HANDLE, &imageIndex);
         
             if (result == VK_ERROR_OUT_OF_DATE_KHR) {
                 printf("Out of date swap chain image!\n");
-//                recreateSwapChain();
-//                return;
+                recreateSwapChain(device, surface, *presentsAnFormatsInfo, *queueFamilyIndicesInfo, vertShaderModule, fragShaderModule, *swapChainObj);
+                return;
             } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
                 printf("failed to acquire swap chain image!\n");
             }
@@ -164,7 +165,7 @@ void drawCall(VkDevice device, VkQueue graphicsQueue, VkSwapchainKHR swapChainKH
             submitInfo.pWaitSemaphores = waitSemaphores;
             submitInfo.pWaitDstStageMask = waitStages;
     
-            submitInfo.pCommandBuffers = &commandBuffers[currentFrame]; // I had to change this from imageIndex - imageIndex goes to 2 (or 3), while the
+            submitInfo.pCommandBuffers = &swapChainObj->commandBuffers[currentFrame]; // I had to change this from imageIndex - imageIndex goes to 2 (or 3), while the
 //          commandBuffer is the size of 2...
 
             VkSemaphore signalSemaphores[] = {syc.renderFinishedSemaphore[currentFrame]};
@@ -183,7 +184,7 @@ void drawCall(VkDevice device, VkQueue graphicsQueue, VkSwapchainKHR swapChainKH
                 .pWaitSemaphores = signalSemaphores
             };
             
-            VkSwapchainKHR swapChains[] = {swapChainKHR};
+            VkSwapchainKHR swapChains[] = {swapChainObj->swapChainKHR};
             
             presentInfo.swapchainCount = 1;
             presentInfo.pSwapchains = swapChains;
@@ -370,7 +371,7 @@ int main(void) {
         /**
         Draw call
          */
-        drawCall(device, graphicsQueue, swapChainObj.swapChainKHR, swapChainObj.commandBuffers, syc, MAX_FRAMES_IN_FLIGHT);
+        drawCall(device, graphicsQueue, surface, &presentsAnFormatsInfo, &queueFamilyIndicesInfo, vertShaderModule, fragShaderModule, &swapChainObj, syc, MAX_FRAMES_IN_FLIGHT);
         
     }
 
