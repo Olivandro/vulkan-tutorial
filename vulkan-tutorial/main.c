@@ -30,11 +30,15 @@ static const char* validationLayers =
 
 
 // Vertex buffer Works
-struct Vectex {
-    vec2 position;
+// Amended to use pointer references to vertex bindings and attributes.
+// Decided that best way forward is to malloc vertex structure as attributes
+// I think the best wy forward is to create a function for making the vertex struct.
+// Input data would be the interleaving vertex attributes.
+struct Vertex {
+    vec2 pos;
     vec3 color;
-    VkVertexInputBindingDescription bindingDescription;
-    VkVertexInputAttributeDescription attributeDescriptions;
+    VkVertexInputBindingDescription* bindingDescription;
+    VkVertexInputAttributeDescription* attributeDescriptions;
 } Vertex;
 
 
@@ -47,6 +51,7 @@ struct SwapChainObj {
     VkRenderPass renderPass;
     VkPipeline graphicsPipeline;
     VkFramebuffer* swapChainFramebuffers;
+    VkCommandPool commandPool;
     VkCommandBuffer* commandBuffers;
 } SwapChainObj;
 
@@ -120,7 +125,6 @@ void drawCall(VkDevice device, VkQueue graphicsQueue, VkSwapchainKHR swapChainKH
     //        We tell our program to wait for the fence that we set up in section 9.
             vkWaitForFences(device, 1, &syc.inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
             
-            
             static uint32_t imageIndex = 0;
             VkResult result = vkAcquireNextImageKHR(device, swapChainKHR, UINT64_MAX, syc.imageAvailableSemaphore[currentFrame], VK_NULL_HANDLE, &imageIndex);
         
@@ -156,7 +160,6 @@ void drawCall(VkDevice device, VkQueue graphicsQueue, VkSwapchainKHR swapChainKH
             submitInfo.pWaitSemaphores = waitSemaphores;
             submitInfo.pWaitDstStageMask = waitStages;
     
-            
             submitInfo.pCommandBuffers = &commandBuffers[currentFrame]; // I had to change this from imageIndex - imageIndex goes to 2 (or 3), while the
 //          commandBuffer is the size of 2...
 
@@ -169,7 +172,6 @@ void drawCall(VkDevice device, VkQueue graphicsQueue, VkSwapchainKHR swapChainKH
                 printf("failed to submit draw command buffer!\n");
             }
                 
-            
             VkPresentInfoKHR presentInfo =
             {
                 .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -177,7 +179,6 @@ void drawCall(VkDevice device, VkQueue graphicsQueue, VkSwapchainKHR swapChainKH
                 .pWaitSemaphores = signalSemaphores
             };
             
-
             VkSwapchainKHR swapChains[] = {swapChainKHR};
             
             presentInfo.swapchainCount = 1;
@@ -188,7 +189,6 @@ void drawCall(VkDevice device, VkQueue graphicsQueue, VkSwapchainKHR swapChainKH
             vkQueuePresentKHR(graphicsQueue, &presentInfo);
             
             currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
 }
 
 
@@ -212,8 +212,8 @@ int main(void) {
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     
-    const uint32_t width = 800;
-    const uint32_t height = 600;
+    static uint32_t width = 800;
+    static uint32_t height = 600;
     
 //    proceed with creating a GLFW window.
     GLFWwindow* window = glfwCreateWindow(width, height, WINDOW_NAME, NULL, NULL);
@@ -278,6 +278,19 @@ int main(void) {
 //    this whole section can be abstracted into functions and return a single variable
 //    Functions needed: (1) parseShaders; (2) compileShaders; (3) createShaderProgram
 
+    
+//    TO DO:
+//    Add Vertex data here using the Vertex struct create above. Cast it here!!
+    /*
+     
+     {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+     {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+     {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+     
+     
+     
+     */
+    
 //    11.1 : Shaders (Vertex Shader first)::
     VkShaderModule vertShaderModule = createShaderProgram(device, VERTEX_SHADER_FILE_PATH, "main.vert", "main", 0);
 
@@ -303,6 +316,9 @@ int main(void) {
     
 
 //    11.5 Create the Graphics pipeline
+//    TO DO:
+//    Vertex data input will happen here. Have to decide how to implement it.. i.e. by reference or single internal
+//    verible..
     VkPipeline graphicsPipeline = createGraphicsPipeline(device, pipelineLayout, renderPass, presentsAnFormatsInfo.extent, shaderStages);
     
     
@@ -349,38 +365,36 @@ int main(void) {
     if (vkDeviceWaitIdle(device) == VK_SUCCESS)
     {
 
-            
-
-// Swapchain clean up
+        // Swapchain clean up
         cleanUpSwapChain(device, swapChainImagesCount, swapChainKHR, swapChainImageViews, shaderStages, pipelineLayout, renderPass, graphicsPipeline, swapChainFramebuffers, commandBuffers, commandPool);
 
             
-//            Program clean up
-//            Will need to figure out how to abstract this effectively
-            free(syc.imagesInFlight);
-            
-            for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-            {
-                vkDestroySemaphore(device, syc.renderFinishedSemaphore[i], NULL);
-                vkDestroySemaphore(device, syc.imageAvailableSemaphore[i], NULL);
-                vkDestroyFence(device, syc.inFlightFences[i], NULL);
-            }
-            free(syc.imageAvailableSemaphore);
-            free(syc.renderFinishedSemaphore);
-            free(syc.inFlightFences);
+        // Program clean up
+        // Will need to figure out how to abstract this effectively
+        free(syc.imagesInFlight);
+        
+        for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            vkDestroySemaphore(device, syc.renderFinishedSemaphore[i], NULL);
+            vkDestroySemaphore(device, syc.imageAvailableSemaphore[i], NULL);
+            vkDestroyFence(device, syc.inFlightFences[i], NULL);
+        }
+        free(syc.imageAvailableSemaphore);
+        free(syc.renderFinishedSemaphore);
+        free(syc.inFlightFences);
 
-        //    Cleanup for commandpool
-            vkDestroyCommandPool(device, commandPool, NULL);
-            
+        // Cleanup for commandpool
+        vkDestroyCommandPool(device, commandPool, NULL);
         
-        
-            vkDestroyShaderModule(device, vertShaderModule, NULL);
-            vkDestroyShaderModule(device, fragShaderModule, NULL);
-            vkDestroyDevice(device, NULL);
-            vkDestroySurfaceKHR(instance, surface, NULL);
-            vkDestroyInstance(instance, NULL);
-            glfwDestroyWindow(window);
-            glfwTerminate();
+    
+    
+        vkDestroyShaderModule(device, vertShaderModule, NULL);
+        vkDestroyShaderModule(device, fragShaderModule, NULL);
+        vkDestroyDevice(device, NULL);
+        vkDestroySurfaceKHR(instance, surface, NULL);
+        vkDestroyInstance(instance, NULL);
+        glfwDestroyWindow(window);
+        glfwTerminate();
     }
     else
         return -1;

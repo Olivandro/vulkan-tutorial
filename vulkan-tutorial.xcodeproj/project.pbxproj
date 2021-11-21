@@ -55,6 +55,7 @@
 		995587722595117900AED95E /* shaders.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = shaders.h; sourceTree = "<group>"; };
 		995587732595117900AED95E /* shaders.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = shaders.c; sourceTree = "<group>"; };
 		99597C4F252927AD00C159CA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		995B489027425BAC00B0D56C /* shader2.vert */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; path = shader2.vert; sourceTree = "<group>"; };
 		9978250825901F4500F44260 /* initVK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = initVK.h; sourceTree = "<group>"; };
 		9978250925901F4500F44260 /* initVK.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = initVK.c; sourceTree = "<group>"; };
 		998090E6257AA58E00D38F4E /* libshaderc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libshaderc.a; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libshaderc.a"; sourceTree = "<group>"; };
@@ -129,6 +130,7 @@
 			children = (
 				99A0379925778B9E006BA209 /* shader.vert */,
 				99A0379A25778BBB006BA209 /* shader.frag */,
+				995B489027425BAC00B0D56C /* shader2.vert */,
 			);
 			path = shaders;
 			sourceTree = "<group>";

@@ -101,6 +101,9 @@ VkPipeline createGraphicsPipeline(VkDevice device, VkPipelineLayout pipelineLayo
 ////    EVERYTHING IS REQUIRED FOR THE GRAPHICS PIPELINE
 //    Below we are establishing loads of settings for our rendering pipeline
     
+    
+//    Abstraction for vertex buffer implementation centres around here.
+//    Tutorial uses additional variables to assign to binding and attributes varibles in the strcuture below. 
     VkPipelineVertexInputStateCreateInfo vertexInputInfo =
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,

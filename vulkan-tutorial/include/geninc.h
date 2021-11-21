@@ -15,6 +15,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+// Have to add:
+// #include <stddef.h>
+// This is required for offsetof() Marco
 
 #define ENABLE_VALIDATION_LAYERS true
 #define APP_NAME "Hello Triangle"
