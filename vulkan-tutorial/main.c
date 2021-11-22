@@ -62,14 +62,14 @@ static const char* validationLayers =
 //}
 
 
-VkBuffer createVertexBuffer(VkDevice device, VkDeviceSize bufferSize)
+VkBuffer createVertexBuffer(VkDevice device, VkDeviceSize bufferSize, VkBufferUsageFlags usage)
 {
     VkBuffer vertexBuffer;
     VkBufferCreateInfo bufferInfo =
     {
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .size = bufferSize,
-        .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        .usage = usage,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE
     };
     
@@ -96,7 +96,7 @@ uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, Vk
     assert();
 }
 
-VkDeviceMemory createVertexBufferMemory(VkDevice device, VkPhysicalDevice physicalDevice, VkBuffer vertexBuffer)
+VkDeviceMemory createVertexBufferMemory(VkDevice device, VkPhysicalDevice physicalDevice, VkBuffer vertexBuffer, VkMemoryPropertyFlags properties)
 {
     VkDeviceMemory vertexBufferMemory;
     VkPhysicalDeviceMemoryProperties memProperties;
@@ -109,7 +109,7 @@ VkDeviceMemory createVertexBufferMemory(VkDevice device, VkPhysicalDevice physic
     {
         .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
         .allocationSize = memRequirements.size,
-        .memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, memProperties)
+        .memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties, memProperties)
     };
     
     if (vkAllocateMemory(device, &allocInfo, NULL, &vertexBufferMemory) != VK_SUCCESS) {
@@ -118,6 +118,56 @@ VkDeviceMemory createVertexBufferMemory(VkDevice device, VkPhysicalDevice physic
     }
     return vertexBufferMemory;
 }
+
+
+void copyBuffer(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
+
+//    The problem with this function is that tutorial only implements values needed for version.
+//    Whereas current version of Vulkan requires all structs to have information filled before reaching submit..
+//    Working now..
+    VkCommandBufferAllocateInfo allocInfo;
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.pNext = NULL;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = commandPool;
+    allocInfo.commandBufferCount = 1;
+
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
+    
+    VkCommandBufferBeginInfo beginInfo;
+    beginInfo.pNext = NULL;
+    beginInfo.pInheritanceInfo = NULL;
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    
+    VkBufferCopy copyRegion;
+    copyRegion.srcOffset = 0; // Optional
+    copyRegion.dstOffset = 0; // Optional
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+    vkEndCommandBuffer(commandBuffer);
+    
+    VkSubmitInfo submitInfo;
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
+    submitInfo.pWaitDstStageMask = NULL;
+    submitInfo.pNext = NULL;
+    submitInfo.pSignalSemaphores = NULL;
+    submitInfo.pWaitSemaphores = NULL;
+    submitInfo.signalSemaphoreCount = 0;
+    submitInfo.waitSemaphoreCount = 0;
+
+    vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(graphicsQueue);
+    
+    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+}
+
 
 
 // Implementing Struct SwapChainObj, going to try and pass reference to see what happens.
@@ -308,34 +358,26 @@ int main(void) {
     /**
             Creating the vertex buffer for drawing data coordinates.
      */
-     struct DrawingData vertices[3] =
+     struct DrawingData vertices[4] =
     {
-        {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+//        {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+//        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+//        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
 //        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
 //        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
 //        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
     };
     
+    uint16_t indices[6] =
+    {
+        0, 1, 2, 2, 3, 0
+    };
     
-//    VkBuffer vertexBuffer = createVertexBuffer(device, vertices);
-    VkDeviceSize bufferSize = sizeof(vertices[0]) * sizeof(vertices);
-    VkBuffer vertexBuffer = createVertexBuffer(device, bufferSize);
-    
-    
-    VkDeviceMemory vertexBufferMemory = createVertexBufferMemory(device, physicalDevice, vertexBuffer);
 
-    vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
-    
-    void* data;
-    vkMapMemory(device, vertexBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, vertices, bufferSize);
-    vkUnmapMemory(device, vertexBufferMemory);
-    
-    /**
-            End of Vertex Buffer implementation...
-     */
      
      
     
@@ -386,10 +428,94 @@ int main(void) {
 //    VkCommandPool commandPool = createCommandPool(device, queueFamilyIndicesInfo.presentFamily);
     swapChainObj.commandPool = createCommandPool(device, queueFamilyIndicesInfo.presentFamily);
 
+
+    
+/**
+    This is the vertex buffer
+ */
+    
+    VkDeviceSize bufferSize = sizeof(vertices[0]) * sizeof(vertices);
+    
+    
+    /**
+        These 3 functions are combined into on function in the Vulkan tutorial...
+     */
+//    this is the staging buffer
+    VkBuffer stagingBuffer = createVertexBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    VkDeviceMemory stagingBufferMemory = createVertexBufferMemory(device, physicalDevice, stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    vkBindBufferMemory(device, stagingBuffer, stagingBufferMemory, 0);
+    /**
+        End of.. function in the Vulkan tutorial...
+     */
+    
+    void* data;
+    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, vertices, bufferSize);
+    vkUnmapMemory(device, stagingBufferMemory);
+    
+    /**
+        These 3 functions are combined into on function in the Vulkan tutorial...
+     */
+    //    This is the vertext buffer
+    VkBuffer vertexBuffer = createVertexBuffer(device, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+    VkDeviceMemory vertexBufferMemory = createVertexBufferMemory(device, physicalDevice, vertexBuffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+    vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
+    /**
+        End of.. function in the Vulkan tutorial...
+     */
+    
+    copyBuffer(device, swapChainObj.commandPool, graphicsQueue, stagingBuffer, vertexBuffer, bufferSize);
+    
+    vkDestroyBuffer(device, stagingBuffer, NULL);
+    vkFreeMemory(device, stagingBufferMemory, NULL);
+    
+    /**
+            End of Vertex Buffer implementation...
+     */
+    
+    VkDeviceSize indicesBufferSize = sizeof(indices[0]) * sizeof(indices);
+
+    /**
+        These 3 functions are combined into on function in the Vulkan tutorial...
+     */
+//    this is the indices staging buffer
+    VkBuffer indicesStagingBuffer = createVertexBuffer(device, indicesBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+    VkDeviceMemory indicesStagingBufferMemory = createVertexBufferMemory(device, physicalDevice, indicesStagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    vkBindBufferMemory(device, indicesStagingBuffer, indicesStagingBufferMemory, 0);
+    /**
+        End of.. function in the Vulkan tutorial...
+     */
+    
+
+    void* indicesdData;
+    vkMapMemory(device, indicesStagingBufferMemory, 0, indicesBufferSize, 0, &indicesdData);
+    memcpy(indicesdData, indices, indicesBufferSize);
+    vkUnmapMemory(device, indicesStagingBufferMemory);
+
+    
+    /**
+        These 3 functions are combined into on function in the Vulkan tutorial...
+     */
+//    this is the indices buffer
+    VkBuffer indicesBuffer = createVertexBuffer(device, indicesBufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+    VkDeviceMemory indicesBufferMemory = createVertexBufferMemory(device, physicalDevice, indicesBuffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    vkBindBufferMemory(device, indicesBuffer, indicesBufferMemory, 0);
+    /**
+        End of.. function in the Vulkan tutorial...
+     */
+
+    copyBuffer(device, swapChainObj.commandPool, graphicsQueue, indicesStagingBuffer, indicesBuffer, indicesBufferSize);
+
+    vkDestroyBuffer(device, indicesStagingBuffer, NULL);
+    vkFreeMemory(device, indicesStagingBufferMemory, NULL);
+    
+    
 //    12.3 : Creating the command buffer
 //    VkCommandBuffer* commandBuffers = createCommandBuffers(device, renderPass, graphicsPipeline, swapChainFramebuffers, commandPool, swapChainImagesCount, presentsAnFormatsInfo.extent);
-    swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent, vertexBuffer, vertices);
-    
+    swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent, vertexBuffer, indicesBuffer, (uint32_t) sizeof(indices));
+        
     
 //  13 : rasterisation and Presentation of the triangle that we are drawing
 //    Both variables are requested throughout the rest of the program
@@ -420,6 +546,10 @@ int main(void) {
         // Swapchain clean up
         cleanUpSwapChain(device, swapChainObj);
 
+        // Cleanup for indicesBuffers
+        vkDestroyBuffer(device, indicesBuffer, NULL);
+        vkFreeMemory(device, indicesBufferMemory, NULL);
+        
         // Cleanup for VertexBuffer and memory allocation.
         vkDestroyBuffer(device, vertexBuffer, NULL);
         vkFreeMemory(device, vertexBufferMemory, NULL);

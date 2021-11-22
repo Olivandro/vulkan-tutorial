@@ -60,7 +60,7 @@ VkCommandPool createCommandPool(VkDevice device, uint32_t presentFamily)
 }
 
 
-VkCommandBuffer* createCommandBuffers(VkDevice device, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkFramebuffer* swapChainFramebuffers, VkCommandPool commandPool, int swapChainImagesCount, VkExtent2D extent, VkBuffer vertexBuffer, struct DrawingData* vertices)
+VkCommandBuffer* createCommandBuffers(VkDevice device, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkFramebuffer* swapChainFramebuffers, VkCommandPool commandPool, int swapChainImagesCount, VkExtent2D extent, VkBuffer vertexBuffer, VkBuffer indexBuffer, uint32_t indicesSize)
 {
 
     VkCommandBuffer* commandBuffers = malloc(sizeof(VkCommandBuffer) * (size_t)(swapChainImagesCount + 1));
@@ -122,10 +122,13 @@ VkCommandBuffer* createCommandBuffers(VkDevice device, VkRenderPass renderPass, 
         VkBuffer vertexBuffers[] = {vertexBuffer};
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
+        vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT16);
 //      End..
         
 //        Vulkan draw command
-        vkCmdDraw(commandBuffers[i], (uint32_t) sizeof(vertices), 1, 0, 0);
+//        vkCmdDraw(commandBuffers[i], (uint32_t) sizeof(vertices), 1, 0, 0);
+        vkCmdDrawIndexed(commandBuffers[i], indicesSize, 1, 0, 0, 0);
+        
         
         vkCmdEndRenderPass(commandBuffers[i]);
         
