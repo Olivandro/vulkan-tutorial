@@ -8,12 +8,6 @@
 #include "pipeline.h"
 #include "commandBuffer.h"
 
-/**
- Maths Library: https://github.com/datenwolf/linmath.h
- TO DO: move to geninc.h
- */
-#include "linmath.h"
-
 
 //  Path to shader files, NOTE: create new new compiler macros for each individual shader file.
 #define VERTEX_SHADER_FILE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/shaders/shader.vert"
@@ -29,99 +23,102 @@ static const char* validationLayers =
 };
 
 
-// Vertex buffer Works
-// Amended to use pointer references to vertex bindings and attributes.
-// Decided that best way forward is to malloc vertex structure as attributes
-// I think the best wy forward is to create a function for making the vertex struct.
-// Input data would be the interleaving vertex attributes.
-struct Vertex {
-    vec2 pos;
-    vec3 color;
-    VkVertexInputBindingDescription* bindingDescription;
-    VkVertexInputAttributeDescription* attributeDescriptions;
-} Vertex;
-
-
-struct SwapChainObj {
-    VkSwapchainKHR swapChainKHR;
-    VkImageView* swapChainImageViews;
-    int swapChainImagesCount;
-    VkPipelineShaderStageCreateInfo* shaderStages;
-    VkPipelineLayout pipelineLayout;
-    VkRenderPass renderPass;
-    VkPipeline graphicsPipeline;
-    VkFramebuffer* swapChainFramebuffers;
-    VkCommandPool commandPool;
-    VkCommandBuffer* commandBuffers;
-} SwapChainObj;
-
-
 /**
-    Swapped over to struct SwapChainObj swapChainObj
+    Functions for creating VkVertexInputBindingDescription* bindingDescription & VkVertexInputAttributeDescription.
  */
-void cleanUpSwapChain(VkDevice device, struct SwapChainObj swapChainObj)
+
+//VkVertexInputBindingDescription getBindingDescription()
+//{
+//    VkVertexInputBindingDescription bindingDescription =
+//    {
+//        bindingDescription.binding = 0,
+//        bindingDescription.stride = sizeof(struct DrawingData),
+//        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+//    };
+//
+//    return bindingDescription;
+//}
+//
+//VkVertexInputAttributeDescription*  getAttributeDescriptions()
+//{
+//
+//    uint32_t posOffSet = (uint32_t) offsetof(struct DrawingData, pos);
+//    uint32_t colorOffSet = (uint32_t) offsetof(struct DrawingData, color);
+//
+//    VkVertexInputAttributeDescription attributeDescriptions[2] =
+//    {
+//        attributeDescriptions[0].binding = 0,
+//        attributeDescriptions[0].location = 0,
+//        attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT,
+//        attributeDescriptions[0].offset = posOffSet,
+//
+//        attributeDescriptions[1].binding = 0,
+//        attributeDescriptions[1].location = 1,
+//        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT,
+//        attributeDescriptions[1].offset = colorOffSet
+//    };
+//
+//    return attributeDescriptions;
+//}
+
+
+VkBuffer createVertexBuffer(VkDevice device, VkDeviceSize bufferSize)
 {
-// Swapchain clean up
-    //    Lets clear out all the Framebuffers
-    //    We have to run it through a for loop to delete all the nested buffer we created earlier
-    //    similar to the swap chain images just below.
-    for (int i = 0; i < swapChainObj.swapChainImagesCount; i++)
+    VkBuffer vertexBuffer;
+    VkBufferCreateInfo bufferInfo =
     {
-        vkDestroyFramebuffer(device, swapChainObj.swapChainFramebuffers[i], NULL);
-    }
-    free(swapChainObj.swapChainFramebuffers);
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .size = bufferSize,
+        .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE
+    };
+    
 
-    vkFreeCommandBuffers(device, swapChainObj.commandPool, (uint32_t)(swapChainObj.swapChainImagesCount + 1), swapChainObj.commandBuffers);
-    free(swapChainObj.commandBuffers);
-    
-//    Graphics render pass pipeline creation
-    vkDestroyPipeline(device, swapChainObj.graphicsPipeline, NULL);
-    
-//    Rendering pass
-    vkDestroyRenderPass(device, swapChainObj.renderPass, NULL);
-    
-//    Initial pipeline
-    vkDestroyPipelineLayout(device, swapChainObj.pipelineLayout, NULL);
-    free(swapChainObj.shaderStages);
-
-    for (int i = 0; i < swapChainObj.swapChainImagesCount; i++)
-    {
-        vkDestroyImageView(device, swapChainObj.swapChainImageViews[i], NULL);
+    if (vkCreateBuffer(device, &bufferInfo, NULL, &vertexBuffer) != VK_SUCCESS) {
+        printf("failed to create vertex buffer!\n");
+        assert();
     }
-    free(swapChainObj.swapChainImageViews);
-    vkDestroySwapchainKHR(device, swapChainObj.swapChainKHR, NULL);
-// END OF SWAPCHAIN CLEANUP
+    
+    return vertexBuffer;
 }
 
-/**
-    Swapped over to struct SwapChainObj swapChainObj
-    PROBLEM: This function currently does not recreate the swapchain successfully...
-    IDEA: Instead of  allowing for flexible resizing, will push to create renderer that resizes to only selection of window sizes.
- */
-void recreateSwapChain(VkDevice device, VkSurfaceKHR surface, struct availablePresentsAnFormats presentsAnFormatsInfo, struct graphicsFamiliesAnIndices queueFamilyIndicesInfo, VkShaderModule vertShaderModule, VkShaderModule fragShaderModule, struct SwapChainObj swapChainObj)
+uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties,  VkPhysicalDeviceMemoryProperties memProperties)
 {
-    /**
-            Wait idle device
-     */
-    vkDeviceWaitIdle(device);
-    /**
-            cleanup swapchain
-     */
-    cleanUpSwapChain(device, swapChainObj);
+    uint32_t memoryType = 0;
     
-    /**
-     Creation of the swapchain
-     */
-        swapChainObj.swapChainKHR = createSwapChain(device, surface, presentsAnFormatsInfo, queueFamilyIndicesInfo);
-        swapChainObj.swapChainImageViews = createImageView(device, swapChainObj.swapChainKHR, presentsAnFormatsInfo);
-        swapChainObj.swapChainImagesCount = findSwapChainImageCount(device, swapChainObj.swapChainKHR, presentsAnFormatsInfo);
-        swapChainObj.shaderStages = CreateShaderStages(vertShaderModule, fragShaderModule);
-        swapChainObj.pipelineLayout = createPipelineLayout(device);
-        swapChainObj.renderPass = createRenderingPass(device, presentsAnFormatsInfo.availableFormats.format);
-        swapChainObj.graphicsPipeline = createGraphicsPipeline(device, swapChainObj.pipelineLayout, swapChainObj.renderPass, presentsAnFormatsInfo.extent, swapChainObj.shaderStages);
-        swapChainObj.swapChainFramebuffers = createSwapChainFramebuffers(device, swapChainObj.swapChainImageViews, swapChainObj.swapChainImagesCount, swapChainObj.renderPass, presentsAnFormatsInfo.extent);
-        swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent);
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            memoryType = i;
+            return memoryType;
+        }
+    }
+    printf("failed to find suitable memory type!\n");
+    assert();
 }
+
+VkDeviceMemory createVertexBufferMemory(VkDevice device, VkPhysicalDevice physicalDevice, VkBuffer vertexBuffer)
+{
+    VkDeviceMemory vertexBufferMemory;
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+    
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(device, vertexBuffer, &memRequirements);
+    
+    VkMemoryAllocateInfo allocInfo =
+    {
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .allocationSize = memRequirements.size,
+        .memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, memProperties)
+    };
+    
+    if (vkAllocateMemory(device, &allocInfo, NULL, &vertexBufferMemory) != VK_SUCCESS) {
+        printf("failed to allocate vertex buffer memory!\n");
+        assert();
+    }
+    return vertexBufferMemory;
+}
+
 
 // Implementing Struct SwapChainObj, going to try and pass reference to see what happens.
 // VkSwapchainKHR swapChainKHR, VkCommandBuffer* commandBuffers
@@ -306,15 +303,41 @@ int main(void) {
     
 //    TO DO:
 //    Add Vertex data here using the Vertex struct create above. Cast it here!!
-    /*
+    
      
-     {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-     {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-     {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
-     
-     
-     
+    /**
+            Creating the vertex buffer for drawing data coordinates.
      */
+     struct DrawingData vertices[3] =
+    {
+        {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+//        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+//        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+//        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+    };
+    
+    
+//    VkBuffer vertexBuffer = createVertexBuffer(device, vertices);
+    VkDeviceSize bufferSize = sizeof(vertices[0]) * sizeof(vertices);
+    VkBuffer vertexBuffer = createVertexBuffer(device, bufferSize);
+    
+    
+    VkDeviceMemory vertexBufferMemory = createVertexBufferMemory(device, physicalDevice, vertexBuffer);
+
+    vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
+    
+    void* data;
+    vkMapMemory(device, vertexBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, vertices, bufferSize);
+    vkUnmapMemory(device, vertexBufferMemory);
+    
+    /**
+            End of Vertex Buffer implementation...
+     */
+     
+     
     
 //    11.1 : Shaders (Vertex Shader first)::
     VkShaderModule vertShaderModule = createShaderProgram(device, VERTEX_SHADER_FILE_PATH, "main.vert", "main", 0);
@@ -365,7 +388,7 @@ int main(void) {
 
 //    12.3 : Creating the command buffer
 //    VkCommandBuffer* commandBuffers = createCommandBuffers(device, renderPass, graphicsPipeline, swapChainFramebuffers, commandPool, swapChainImagesCount, presentsAnFormatsInfo.extent);
-    swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent);
+    swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent, vertexBuffer, vertices);
     
     
 //  13 : rasterisation and Presentation of the triangle that we are drawing
@@ -397,7 +420,11 @@ int main(void) {
         // Swapchain clean up
         cleanUpSwapChain(device, swapChainObj);
 
-            
+        // Cleanup for VertexBuffer and memory allocation.
+        vkDestroyBuffer(device, vertexBuffer, NULL);
+        vkFreeMemory(device, vertexBufferMemory, NULL);
+        // End.
+        
         // Program clean up
         // Will need to figure out how to abstract this effectively
         free(syc.imagesInFlight);

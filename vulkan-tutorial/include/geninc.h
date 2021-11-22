@@ -15,9 +15,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-// Have to add:
-// #include <stddef.h>
+#include <stddef.h>
 // This is required for offsetof() Marco
+
+/**
+ Maths Library: https://github.com/datenwolf/linmath.h
+ TO DO: move to geninc.h
+ */
+#include "linmath.h"
 
 #define ENABLE_VALIDATION_LAYERS true
 #define APP_NAME "Hello Triangle"
@@ -47,6 +52,24 @@ struct availablePresentsAnFormats
     VkExtent2D extent;
     VkSurfaceTransformFlagBitsKHR currentTransform;
     uint32_t imageCount;
+};
+
+struct DrawingData {
+    vec2 pos;
+    vec3 color;
+};
+
+struct SwapChainObj {
+    VkSwapchainKHR swapChainKHR;
+    VkImageView* swapChainImageViews;
+    int swapChainImagesCount;
+    VkPipelineShaderStageCreateInfo* shaderStages;
+    VkPipelineLayout pipelineLayout;
+    VkRenderPass renderPass;
+    VkPipeline graphicsPipeline;
+    VkFramebuffer* swapChainFramebuffers;
+    VkCommandPool commandPool;
+    VkCommandBuffer* commandBuffers;
 };
 
 struct syncAndFence

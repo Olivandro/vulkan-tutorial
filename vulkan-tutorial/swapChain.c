@@ -120,3 +120,37 @@ int findSwapChainImageCount(VkDevice device, VkSwapchainKHR swapChainKHR, struct
     
         return swapChainImagesCount;
 }
+
+void cleanUpSwapChain(VkDevice device, struct SwapChainObj swapChainObj)
+{
+// Swapchain clean up
+    //    Lets clear out all the Framebuffers
+    //    We have to run it through a for loop to delete all the nested buffer we created earlier
+    //    similar to the swap chain images just below.
+    for (int i = 0; i < swapChainObj.swapChainImagesCount; i++)
+    {
+        vkDestroyFramebuffer(device, swapChainObj.swapChainFramebuffers[i], NULL);
+    }
+    free(swapChainObj.swapChainFramebuffers);
+
+    vkFreeCommandBuffers(device, swapChainObj.commandPool, (uint32_t)(swapChainObj.swapChainImagesCount + 1), swapChainObj.commandBuffers);
+    free(swapChainObj.commandBuffers);
+    
+//    Graphics render pass pipeline creation
+    vkDestroyPipeline(device, swapChainObj.graphicsPipeline, NULL);
+    
+//    Rendering pass
+    vkDestroyRenderPass(device, swapChainObj.renderPass, NULL);
+    
+//    Initial pipeline
+    vkDestroyPipelineLayout(device, swapChainObj.pipelineLayout, NULL);
+    free(swapChainObj.shaderStages);
+
+    for (int i = 0; i < swapChainObj.swapChainImagesCount; i++)
+    {
+        vkDestroyImageView(device, swapChainObj.swapChainImageViews[i], NULL);
+    }
+    free(swapChainObj.swapChainImageViews);
+    vkDestroySwapchainKHR(device, swapChainObj.swapChainKHR, NULL);
+// END OF SWAPCHAIN CLEANUP
+}

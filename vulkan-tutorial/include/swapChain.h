@@ -16,4 +16,6 @@ VkImageView* createImageView(VkDevice device, VkSwapchainKHR swapChainKHR, struc
 
 int findSwapChainImageCount(VkDevice device, VkSwapchainKHR swapChainKHR, struct availablePresentsAnFormats presentsAnFormatsInfo);
 
+void cleanUpSwapChain(VkDevice device, struct SwapChainObj swapChainObj);
+
 #endif /* swapChain_h */

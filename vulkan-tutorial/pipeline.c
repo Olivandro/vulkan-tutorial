@@ -103,14 +103,35 @@ VkPipeline createGraphicsPipeline(VkDevice device, VkPipelineLayout pipelineLayo
     
     
 //    Abstraction for vertex buffer implementation centres around here.
-//    Tutorial uses additional variables to assign to binding and attributes varibles in the strcuture below. 
+//    Tutorial uses additional variables to assign to binding and attributes varibles in the strcuture below.
+    
+    VkVertexInputBindingDescription bindingDescription =
+    {
+        bindingDescription.binding = 0,
+        bindingDescription.stride = sizeof(struct DrawingData),
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX
+    };
+    
+
+    VkVertexInputAttributeDescription attributeDescriptions[2];
+    
+    attributeDescriptions[0].binding = (uint32_t) 0;
+    attributeDescriptions[0].location = (uint32_t) 0;
+    attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+    attributeDescriptions[0].offset = (uint32_t) offsetof(struct DrawingData, pos);
+        
+    attributeDescriptions[1].binding = (uint32_t) 0;
+    attributeDescriptions[1].location = (uint32_t) 1;
+    attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+    attributeDescriptions[1].offset = (uint32_t) offsetof(struct DrawingData, color);
+    
     VkPipelineVertexInputStateCreateInfo vertexInputInfo =
     {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-        .vertexBindingDescriptionCount = 0,
-        .pVertexBindingDescriptions = NULL, // Optional
-        .vertexAttributeDescriptionCount = 0,
-        .pVertexAttributeDescriptions = NULL // Optional
+        .vertexBindingDescriptionCount = 1, // 0,
+        .pVertexBindingDescriptions = &bindingDescription, // NULL,
+        .vertexAttributeDescriptionCount = (uint32_t) sizeof(attributeDescriptions) / sizeof(attributeDescriptions[0]), // 0,
+        .pVertexAttributeDescriptions = attributeDescriptions // Optional
     };
     
     VkPipelineInputAssemblyStateCreateInfo inputAssembly =
