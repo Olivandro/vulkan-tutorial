@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 // This is required for offsetof() Marco
+#include <time.h>
 
 /**
  Maths Library: https://github.com/datenwolf/linmath.h
@@ -57,6 +58,14 @@ struct availablePresentsAnFormats
 struct DrawingData {
     vec2 pos;
     vec3 color;
+};
+
+struct UniformBufferObject {
+    
+    mat4x4 model;
+    mat4x4 view;
+    mat4x4 proj;
+    
 };
 
 struct SwapChainObj {

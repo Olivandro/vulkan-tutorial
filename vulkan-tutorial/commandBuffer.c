@@ -60,7 +60,7 @@ VkCommandPool createCommandPool(VkDevice device, uint32_t presentFamily)
 }
 
 
-VkCommandBuffer* createCommandBuffers(VkDevice device, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkFramebuffer* swapChainFramebuffers, VkCommandPool commandPool, int swapChainImagesCount, VkExtent2D extent, VkBuffer vertexBuffer, VkBuffer indexBuffer, uint32_t indicesSize)
+VkCommandBuffer* createCommandBuffers(VkDevice device, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkPipelineLayout pipelineLayout, VkFramebuffer* swapChainFramebuffers, VkCommandPool commandPool, int swapChainImagesCount, VkExtent2D extent, VkBuffer vertexBuffer, VkBuffer indexBuffer, uint32_t indicesSize, VkDescriptorSet* descriptorSets)
 {
 
     VkCommandBuffer* commandBuffers = malloc(sizeof(VkCommandBuffer) * (size_t)(swapChainImagesCount + 1));
@@ -123,6 +123,7 @@ VkCommandBuffer* createCommandBuffers(VkDevice device, VkRenderPass renderPass, 
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
         vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, NULL);
 //      End..
         
 //        Vulkan draw command

@@ -10,7 +10,7 @@
 
 #include "geninc.h"
 
-VkPipelineLayout createPipelineLayout(VkDevice device);
+VkPipelineLayout createPipelineLayout(VkDevice device, VkDescriptorSetLayout descriptorSetLayout);
 
 VkRenderPass createRenderingPass(VkDevice device, VkFormat VkColourFormat);
 

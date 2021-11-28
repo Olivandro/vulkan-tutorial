@@ -23,44 +23,6 @@ static const char* validationLayers =
 };
 
 
-/**
-    Functions for creating VkVertexInputBindingDescription* bindingDescription & VkVertexInputAttributeDescription.
- */
-
-//VkVertexInputBindingDescription getBindingDescription()
-//{
-//    VkVertexInputBindingDescription bindingDescription =
-//    {
-//        bindingDescription.binding = 0,
-//        bindingDescription.stride = sizeof(struct DrawingData),
-//        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX
-//    };
-//
-//    return bindingDescription;
-//}
-//
-//VkVertexInputAttributeDescription*  getAttributeDescriptions()
-//{
-//
-//    uint32_t posOffSet = (uint32_t) offsetof(struct DrawingData, pos);
-//    uint32_t colorOffSet = (uint32_t) offsetof(struct DrawingData, color);
-//
-//    VkVertexInputAttributeDescription attributeDescriptions[2] =
-//    {
-//        attributeDescriptions[0].binding = 0,
-//        attributeDescriptions[0].location = 0,
-//        attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT,
-//        attributeDescriptions[0].offset = posOffSet,
-//
-//        attributeDescriptions[1].binding = 0,
-//        attributeDescriptions[1].location = 1,
-//        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT,
-//        attributeDescriptions[1].offset = colorOffSet
-//    };
-//
-//    return attributeDescriptions;
-//}
-
 
 VkBuffer createVertexBuffer(VkDevice device, VkDeviceSize bufferSize, VkBufferUsageFlags usage)
 {
@@ -169,11 +131,149 @@ void copyBuffer(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueu
 }
 
 
+/**
+ Uniform buffer
+ */
+VkDescriptorSetLayout createDescriptorSetLayout(VkDevice device)
+{
+    VkDescriptorSetLayoutBinding uboLayoutBinding;
+    uboLayoutBinding.binding = 0;
+    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboLayoutBinding.descriptorCount = 1;
+    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    uboLayoutBinding.pImmutableSamplers = NULL;
+    
+    VkDescriptorSetLayoutCreateInfo layoutInfo;
+    layoutInfo.flags = VK_NULL_HANDLE;
+    layoutInfo.pNext = NULL;
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &uboLayoutBinding;
+
+    VkDescriptorSetLayout descriptorSetLayout;
+    if (vkCreateDescriptorSetLayout(device, &layoutInfo, NULL, &descriptorSetLayout) != VK_SUCCESS) {
+        printf("failed to create descriptor set layout!\n");
+        assert();
+    }
+    
+    return descriptorSetLayout;
+}
+
+void createUniformBuffers(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t swapChainImagesCount, VkBuffer* uniformBuffers, VkDeviceMemory* uniformBufferMemory)
+{
+    VkDeviceSize bufferSize = sizeof(struct UniformBufferObject);
+
+
+    for (size_t i = 0; i < (size_t) swapChainImagesCount; i++) {
+        
+        uniformBuffers[i] = createVertexBuffer(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+        uniformBufferMemory[i] = createVertexBufferMemory(device, physicalDevice, uniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        vkBindBufferMemory(device, uniformBuffers[i], uniformBufferMemory[i], 0);
+        
+    }
+}
+
+
+VkDescriptorPool createDescriptorPool(VkDevice device, uint32_t swapChainImagesCount)
+{
+    VkDescriptorPool descriptorPool;
+
+    VkDescriptorPoolSize poolSize;
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize.descriptorCount = swapChainImagesCount;
+    
+    VkDescriptorPoolCreateInfo poolInfo;
+    poolInfo.flags = VK_NULL_HANDLE;
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.pNext = NULL;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = swapChainImagesCount;
+
+    if (vkCreateDescriptorPool(device, &poolInfo, NULL, &descriptorPool) != VK_SUCCESS) {
+        printf("failed to create descriptor pool!");
+        assert();
+    }
+    return descriptorPool;
+}
+
+
+VkDescriptorSet* createDescriptorSet(VkDevice device, uint32_t swapChainImagesCount, VkBuffer* uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool)
+{
+
+    VkDescriptorSetLayout layouts[swapChainImagesCount];
+    for (size_t i = 0; i < (size_t) swapChainImagesCount; i++) {
+        layouts[i] = descriptorSetLayout;
+    }
+    VkDescriptorSetAllocateInfo allocInfo;
+    allocInfo.pNext = NULL;
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = descriptorPool;
+    allocInfo.descriptorSetCount = swapChainImagesCount;
+    allocInfo.pSetLayouts = layouts;
+    
+    VkDescriptorSet* descriptorSets = malloc((size_t) swapChainImagesCount);
+
+    if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets) != VK_SUCCESS) {
+        printf("failed to allocate descriptor sets!\n");
+        assert();
+    }
+
+    for (size_t i = 0; i < (size_t) swapChainImagesCount; i++) {
+        VkDescriptorBufferInfo bufferInfo;
+        bufferInfo.buffer = uniformBuffers[i];
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(struct UniformBufferObject);
+        
+        VkWriteDescriptorSet descriptorWrite;
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.pNext = NULL;
+        descriptorWrite.dstSet = descriptorSets[i];
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.descriptorCount = 1;
+        
+        descriptorWrite.pBufferInfo = &bufferInfo;
+        descriptorWrite.pImageInfo = NULL; // Optional
+        descriptorWrite.pTexelBufferView = NULL; // Optional
+        
+        vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, NULL);
+    }
+    
+    return descriptorSets;
+    
+}
+
+
+
+void updateUniformBuffer(VkDevice device, VkExtent2D extent, uint32_t currentImage, clock_t start, VkDeviceMemory* uniformBufferMemory)
+{
+
+    clock_t current = clock() - start;
+    float time = (float) current / CLOCKS_PER_SEC;
+    
+    struct UniformBufferObject ubo;
+    mat4x4_identity(ubo.model);
+    mat4x4_rotate(ubo.model, ubo.model, 0.0f, 0.0f, 1.0f, time * (90.0f / 57.29578f));
+    mat4x4_look_at(ubo.view, (vec3){2.0f, 2.0f, 2.0f}, (vec3){0.0f, 0.0f, 0.0f}, (vec3){0.0f, 0.0f, 1.0f});
+    mat4x4_perspective(ubo.proj, (45.0f / 57.29578f), extent.width / (float) extent.height, 0.1f, 10.0f);
+    
+    ubo.proj[1][1] *= -1;
+
+    void* data;
+    vkMapMemory(device, uniformBufferMemory[currentImage], 0, sizeof(ubo), 0, &data);
+    memcpy(data, &ubo, sizeof(ubo));
+    vkUnmapMemory(device, uniformBufferMemory[currentImage]);
+
+}
+
 
 // Implementing Struct SwapChainObj, going to try and pass reference to see what happens.
 // VkSwapchainKHR swapChainKHR, VkCommandBuffer* commandBuffers
 //  Pased a reference to swapChainObj to reduce variable overhead.
-void drawCall(VkDevice device, VkQueue graphicsQueue, struct SwapChainObj* swapChainObj, struct syncAndFence syc, const int MAX_FRAMES_IN_FLIGHT)
+void drawCall(VkDevice device, VkQueue graphicsQueue, VkExtent2D extent, struct SwapChainObj* swapChainObj, struct syncAndFence syc, VkDeviceMemory* uniformBufferMemory, const int MAX_FRAMES_IN_FLIGHT, clock_t start)
 {
     
             static size_t currentFrame = 0;
@@ -202,7 +302,9 @@ void drawCall(VkDevice device, VkQueue graphicsQueue, struct SwapChainObj* swapC
             
     //      Mark the image as now being in use by this frame
             syc.imagesInFlight[imageIndex] = syc.inFlightFences[currentFrame];
-            
+    
+            updateUniformBuffer(device, extent, imageIndex, start, uniformBufferMemory);
+    
             VkSubmitInfo submitInfo =
             {
                 .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -265,6 +367,8 @@ void drawCall(VkDevice device, VkQueue graphicsQueue, struct SwapChainObj* swapC
  */
 
 int main(void) {
+    
+    clock_t start = clock();
     
 // Opening glfw window setup...
     if (glfwInit() != GLFW_TRUE)
@@ -364,12 +468,6 @@ int main(void) {
         {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
         {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
         {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
-//        {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-//        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-//        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
-//        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-//        {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-//        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
     };
     
     uint16_t indices[6] =
@@ -398,9 +496,16 @@ int main(void) {
 //    This is the next major step
 //    In Vulkan you have to be explicit about everything, from viewport size to color blending function.
    
+    
+    /**
+        To insert: VkDescriptorSetLayout descriptorSetLayout --in this location.
+        NOTE: should this be in SwapChainObj??
+     */
+    VkDescriptorSetLayout descriptorSetLayout = createDescriptorSetLayout(device);
+    
 //    11.3 : Creating the graphics pipeline
 //    VkPipelineLayout pipelineLayout = createPipelineLayout(device);
-    swapChainObj.pipelineLayout = createPipelineLayout(device);
+    swapChainObj.pipelineLayout = createPipelineLayout(device, descriptorSetLayout);
     
     
 //    11.4 : Creating the rendering pass
@@ -511,10 +616,24 @@ int main(void) {
     vkDestroyBuffer(device, indicesStagingBuffer, NULL);
     vkFreeMemory(device, indicesStagingBufferMemory, NULL);
     
+    /**
+            End of Index Buffer implementation...
+     */
+    
+    VkBuffer uniformBuffers[swapChainObj.swapChainImagesCount];
+    VkDeviceMemory uniformBufferMemory[swapChainObj.swapChainImagesCount];
+    
+    createUniformBuffers(device, physicalDevice, swapChainObj.swapChainImagesCount, uniformBuffers, uniformBufferMemory);
+    
+    
+    
+    VkDescriptorPool descriptorPool = createDescriptorPool(device, swapChainObj.swapChainImagesCount);
+    VkDescriptorSet* descriptorSets = createDescriptorSet(device, swapChainObj.swapChainImagesCount, uniformBuffers, descriptorSetLayout, descriptorPool);
+    
     
 //    12.3 : Creating the command buffer
 //    VkCommandBuffer* commandBuffers = createCommandBuffers(device, renderPass, graphicsPipeline, swapChainFramebuffers, commandPool, swapChainImagesCount, presentsAnFormatsInfo.extent);
-    swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent, vertexBuffer, indicesBuffer, (uint32_t) sizeof(indices));
+    swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.pipelineLayout, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent, vertexBuffer, indicesBuffer, (uint32_t) sizeof(indices), descriptorSets);
         
     
 //  13 : rasterisation and Presentation of the triangle that we are drawing
@@ -535,7 +654,8 @@ int main(void) {
         /**
         Draw call
          */
-        drawCall(device, graphicsQueue, &swapChainObj, syc, MAX_FRAMES_IN_FLIGHT);
+        drawCall(device, graphicsQueue, presentsAnFormatsInfo.extent, &swapChainObj, syc, uniformBufferMemory, MAX_FRAMES_IN_FLIGHT, start);
+//        drawCall(device, graphicsQueue, presentsAnFormatsInfo.extent, &swapChainObj, syc, MAX_FRAMES_IN_FLIGHT);
         
     }
 
@@ -545,6 +665,20 @@ int main(void) {
 
         // Swapchain clean up
         cleanUpSwapChain(device, swapChainObj);
+        
+        // Cleanup uniform buffers
+        for (size_t i = 0; i < (size_t) swapChainObj.swapChainImagesCount; i++)
+        {
+                vkDestroyBuffer(device, uniformBuffers[i], NULL);
+                vkFreeMemory(device, uniformBufferMemory[i], NULL);
+        }
+//        free(uniformBuffers);
+//        free(uniformBufferMemory);
+        
+        vkDestroyDescriptorPool(device, descriptorPool, NULL);
+        
+        // Cleanup vkDestroyDescriptorSetLayout
+        vkDestroyDescriptorSetLayout(device, descriptorSetLayout, NULL);
 
         // Cleanup for indicesBuffers
         vkDestroyBuffer(device, indicesBuffer, NULL);
