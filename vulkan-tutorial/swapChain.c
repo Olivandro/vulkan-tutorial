@@ -67,6 +67,7 @@ VkImageView* createImageView(VkDevice device, VkSwapchainKHR swapChainKHR, struc
         vkGetSwapchainImagesKHR(device, swapChainKHR, &presentsAnFormatsInfo.imageCount, swapChainImages);
         
     //    reoccurring variable for tracking swapchain image count
+//    Swap to uint30_t
         int swapChainImagesCount = (int) sizeof(swapChainImages) / (int) swapChainImages[0];
         
     //    Global malloc variable that is freed at the end of program

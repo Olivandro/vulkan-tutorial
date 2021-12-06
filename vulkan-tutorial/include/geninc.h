@@ -18,12 +18,19 @@
 #include <stddef.h>
 // This is required for offsetof() Marco
 #include <time.h>
+#include <stdalign.h>
 
 /**
  Maths Library: https://github.com/datenwolf/linmath.h
  TO DO: move to geninc.h
  */
 #include "linmath.h"
+
+
+//#ifndef STB_IMAGE_IMPLEMENTATION
+//#define STB_IMAGE_IMPLEMENTATION
+//#endif
+
 
 #define ENABLE_VALIDATION_LAYERS true
 #define APP_NAME "Hello Triangle"
@@ -58,20 +65,21 @@ struct availablePresentsAnFormats
 struct DrawingData {
     vec2 pos;
     vec3 color;
+    vec2 texCoord;
 };
 
 struct UniformBufferObject {
     
-    mat4x4 model;
-    mat4x4 view;
-    mat4x4 proj;
+    _Alignas(16) mat4x4 model;
+    _Alignas(16) mat4x4 view;
+    _Alignas(16) mat4x4 proj;
     
 };
 
 struct SwapChainObj {
     VkSwapchainKHR swapChainKHR;
     VkImageView* swapChainImageViews;
-    int swapChainImagesCount;
+    int swapChainImagesCount; // fix to uint32_t
     VkPipelineShaderStageCreateInfo* shaderStages;
     VkPipelineLayout pipelineLayout;
     VkRenderPass renderPass;

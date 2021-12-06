@@ -6,12 +6,20 @@
 #include "swapChain.h"
 #include "shaders.h"
 #include "pipeline.h"
+#include "graphicsDataBuffer.h"
 #include "commandBuffer.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ASSERT(x)
+#include "stb_image.h"
 
 
 //  Path to shader files, NOTE: create new new compiler macros for each individual shader file.
 #define VERTEX_SHADER_FILE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/shaders/shader.vert"
 #define FRAGMENT_SHADER_FILE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/shaders/shader.frag"
+
+
+#define TEST_TEXTURE_FILE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/statue.jpg"
 
 
 /**
@@ -23,256 +31,264 @@ static const char* validationLayers =
 };
 
 
-
-VkBuffer createVertexBuffer(VkDevice device, VkDeviceSize bufferSize, VkBufferUsageFlags usage)
+void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize bufferSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* buffer, VkDeviceMemory* bufferMemory)
 {
-    VkBuffer vertexBuffer;
-    VkBufferCreateInfo bufferInfo =
+    VkBufferCreateInfo bufferInfo;
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.flags = 0;
+    bufferInfo.pNext = NULL;
+    bufferInfo.size = bufferSize;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    if (vkCreateBuffer(device, &bufferInfo, NULL, buffer) != VK_SUCCESS) {
+        printf("failed to create buffer!\n");
+    }
+    
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(device, *buffer, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo;
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.pNext = NULL;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties, memProperties);
+
+    if (vkAllocateMemory(device, &allocInfo, NULL, bufferMemory) != VK_SUCCESS) {
+        printf("failed to allocate buffer memory!\n");
+    }
+
+    vkBindBufferMemory(device, *buffer, *bufferMemory, 0);
+}
+
+void transitionImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+{
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+    
+    VkImageMemoryBarrier barrier;
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.pNext = NULL;
+    barrier.oldLayout = oldLayout;
+    barrier.newLayout = newLayout;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = image;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.subresourceRange.levelCount = 1;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.layerCount = 1;
+//    barrier.srcAccessMask = 0; // TODO
+//    barrier.dstAccessMask = 0; // TODO
+    
+    VkPipelineStageFlags sourceStage;
+    VkPipelineStageFlags destinationStage;
+
+    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    } else {
+        printf("unsupported layout transition!\n");
+    }
+
+    vkCmdPipelineBarrier(
+        commandBuffer,
+        sourceStage, destinationStage,
+        0,
+        0, NULL,
+        0, NULL,
+        1, &barrier
+    );
+
+    endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
+}
+
+void copyBufferToImage(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
+{
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+    
+    VkBufferImageCopy region =
     {
-        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-        .size = bufferSize,
-        .usage = usage,
-        .sharingMode = VK_SHARING_MODE_EXCLUSIVE
+        .imageOffset = {0, 0, 0},
+        .imageExtent = {width, height, 1}
     };
     
+    region.bufferOffset = 0;
+    region.bufferRowLength = 0;
+    region.bufferImageHeight = 0;
 
-    if (vkCreateBuffer(device, &bufferInfo, NULL, &vertexBuffer) != VK_SUCCESS) {
-        printf("failed to create vertex buffer!\n");
-        assert();
-    }
+    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.mipLevel = 0;
+    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.layerCount = 1;
     
-    return vertexBuffer;
+    vkCmdCopyBufferToImage(
+        commandBuffer,
+        buffer,
+        image,
+        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        1,
+        &region
+    );
+
+    endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
 }
 
-uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties,  VkPhysicalDeviceMemoryProperties memProperties)
-{
-    uint32_t memoryType = 0;
-    
-    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-            memoryType = i;
-            return memoryType;
-        }
-    }
-    printf("failed to find suitable memory type!\n");
-    assert();
-}
 
-VkDeviceMemory createVertexBufferMemory(VkDevice device, VkPhysicalDevice physicalDevice, VkBuffer vertexBuffer, VkMemoryPropertyFlags properties)
+
+void createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage* textureImage, VkDeviceMemory* textureImageMemory)
 {
-    VkDeviceMemory vertexBufferMemory;
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    
+    int texWidth, texHeight, texChannels;
+        stbi_uc* pixels = stbi_load(TEST_TEXTURE_FILE_PATH, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+        VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+    if (!pixels) {
+        printf("failed to load texture image!\n");
+    }
+    
+    createBuffer(device, physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+
+    void* data;
+    vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
+        memcpy(data, pixels, (size_t) imageSize);
+    vkUnmapMemory(device, stagingBufferMemory);
+    
+    stbi_image_free(pixels);
+
+    
+//    Create image & memory values
+    VkImageCreateInfo imageInfo;
+    imageInfo.pNext = NULL;
+    imageInfo.flags = VK_NULL_HANDLE;
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.extent.width = texWidth;
+    imageInfo.extent.height = texHeight;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    if (vkCreateImage(device, &imageInfo, NULL, textureImage) != VK_SUCCESS) {
+        printf("failed to create image!\n");
+    }
+
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
     
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, vertexBuffer, &memRequirements);
-    
-    VkMemoryAllocateInfo allocInfo =
-    {
-        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-        .allocationSize = memRequirements.size,
-        .memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties, memProperties)
-    };
-    
-    if (vkAllocateMemory(device, &allocInfo, NULL, &vertexBufferMemory) != VK_SUCCESS) {
-        printf("failed to allocate vertex buffer memory!\n");
-        assert();
-    }
-    return vertexBufferMemory;
-}
+    vkGetImageMemoryRequirements(device, *textureImage, &memRequirements);
 
-
-void copyBuffer(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
-
-//    The problem with this function is that tutorial only implements values needed for version.
-//    Whereas current version of Vulkan requires all structs to have information filled before reaching submit..
-//    Working now..
-    VkCommandBufferAllocateInfo allocInfo;
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    VkMemoryAllocateInfo allocInfo;
     allocInfo.pNext = NULL;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = commandPool;
-    allocInfo.commandBufferCount = 1;
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, memProperties);
 
-    VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
-    
-    VkCommandBufferBeginInfo beginInfo;
-    beginInfo.pNext = NULL;
-    beginInfo.pInheritanceInfo = NULL;
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    if (vkAllocateMemory(device, &allocInfo, NULL, textureImageMemory) != VK_SUCCESS) {
+        printf("failed to allocate image memory!\n");
+    }
 
-    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    vkBindImageMemory(device, *textureImage, *textureImageMemory, 0);
+//    End of image & memory values
     
-    VkBufferCopy copyRegion;
-    copyRegion.srcOffset = 0; // Optional
-    copyRegion.dstOffset = 0; // Optional
-    copyRegion.size = size;
-    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+    transitionImageLayout(device, commandPool, graphicsQueue, *textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    
+    copyBufferToImage(device, commandPool, graphicsQueue, stagingBuffer, *textureImage, (uint32_t) texWidth, (uint32_t) texHeight);
+    
+    transitionImageLayout(device, commandPool, graphicsQueue, *textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    
+    vkDestroyBuffer(device, stagingBuffer, NULL);
+    vkFreeMemory(device, stagingBufferMemory, NULL);
 
-    vkEndCommandBuffer(commandBuffer);
-    
-    VkSubmitInfo submitInfo;
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
-    submitInfo.pWaitDstStageMask = NULL;
-    submitInfo.pNext = NULL;
-    submitInfo.pSignalSemaphores = NULL;
-    submitInfo.pWaitSemaphores = NULL;
-    submitInfo.signalSemaphoreCount = 0;
-    submitInfo.waitSemaphoreCount = 0;
-
-    vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(graphicsQueue);
-    
-    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
+
+
+
+void createTextureImageView(VkDevice device, VkImage textureImage, VkFormat format, VkImageView* textureImageView)
+{
+    VkImageViewCreateInfo viewInfo;
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.pNext = NULL;
+    viewInfo.flags = VK_NULL_HANDLE;
+    viewInfo.image = textureImage;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = format;
+    viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+    viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+    viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+    viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+
+    if (vkCreateImageView(device, &viewInfo, NULL, textureImageView) != VK_SUCCESS) {
+        printf("failed to create texture image view!\n");
+    }
+
+}
+
+
+void createTextureSampler(VkDevice device, VkPhysicalDevice physicalDevice, VkSampler* textureSampler)
+{
+    VkSamplerCreateInfo samplerInfo;
+    samplerInfo.pNext = NULL;
+    samplerInfo.flags = VK_NULL_HANDLE;
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    
+    samplerInfo.anisotropyEnable = VK_TRUE;
+    
+    VkPhysicalDeviceProperties properties;
+    vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+    
+    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = 0.0f;
+    
+    if (vkCreateSampler(device, &samplerInfo, NULL, textureSampler) != VK_SUCCESS) {
+            printf("failed to create texture sampler!\n");
+        }
+    
+}
+
 
 
 /**
- Uniform buffer
+ This is the main draw function
  */
-VkDescriptorSetLayout createDescriptorSetLayout(VkDevice device)
-{
-    VkDescriptorSetLayoutBinding uboLayoutBinding;
-    uboLayoutBinding.binding = 0;
-    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboLayoutBinding.descriptorCount = 1;
-    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    uboLayoutBinding.pImmutableSamplers = NULL;
-    
-    VkDescriptorSetLayoutCreateInfo layoutInfo;
-    layoutInfo.flags = VK_NULL_HANDLE;
-    layoutInfo.pNext = NULL;
-    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = 1;
-    layoutInfo.pBindings = &uboLayoutBinding;
 
-    VkDescriptorSetLayout descriptorSetLayout;
-    if (vkCreateDescriptorSetLayout(device, &layoutInfo, NULL, &descriptorSetLayout) != VK_SUCCESS) {
-        printf("failed to create descriptor set layout!\n");
-        assert();
-    }
-    
-    return descriptorSetLayout;
-}
-
-void createUniformBuffers(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t swapChainImagesCount, VkBuffer* uniformBuffers, VkDeviceMemory* uniformBufferMemory)
-{
-    VkDeviceSize bufferSize = sizeof(struct UniformBufferObject);
-
-
-    for (size_t i = 0; i < (size_t) swapChainImagesCount; i++) {
-        
-        uniformBuffers[i] = createVertexBuffer(device, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-        uniformBufferMemory[i] = createVertexBufferMemory(device, physicalDevice, uniformBuffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        vkBindBufferMemory(device, uniformBuffers[i], uniformBufferMemory[i], 0);
-        
-    }
-}
-
-
-VkDescriptorPool createDescriptorPool(VkDevice device, uint32_t swapChainImagesCount)
-{
-    VkDescriptorPool descriptorPool;
-
-    VkDescriptorPoolSize poolSize;
-    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSize.descriptorCount = swapChainImagesCount;
-    
-    VkDescriptorPoolCreateInfo poolInfo;
-    poolInfo.flags = VK_NULL_HANDLE;
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.pNext = NULL;
-    poolInfo.poolSizeCount = 1;
-    poolInfo.pPoolSizes = &poolSize;
-    poolInfo.maxSets = swapChainImagesCount;
-
-    if (vkCreateDescriptorPool(device, &poolInfo, NULL, &descriptorPool) != VK_SUCCESS) {
-        printf("failed to create descriptor pool!");
-        assert();
-    }
-    return descriptorPool;
-}
-
-
-VkDescriptorSet* createDescriptorSet(VkDevice device, uint32_t swapChainImagesCount, VkBuffer* uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorPool descriptorPool)
-{
-
-    VkDescriptorSetLayout layouts[swapChainImagesCount];
-    for (size_t i = 0; i < (size_t) swapChainImagesCount; i++) {
-        layouts[i] = descriptorSetLayout;
-    }
-    VkDescriptorSetAllocateInfo allocInfo;
-    allocInfo.pNext = NULL;
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = descriptorPool;
-    allocInfo.descriptorSetCount = swapChainImagesCount;
-    allocInfo.pSetLayouts = layouts;
-    
-    VkDescriptorSet* descriptorSets = malloc((size_t) swapChainImagesCount);
-
-    if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets) != VK_SUCCESS) {
-        printf("failed to allocate descriptor sets!\n");
-        assert();
-    }
-
-    for (size_t i = 0; i < (size_t) swapChainImagesCount; i++) {
-        VkDescriptorBufferInfo bufferInfo;
-        bufferInfo.buffer = uniformBuffers[i];
-        bufferInfo.offset = 0;
-        bufferInfo.range = sizeof(struct UniformBufferObject);
-        
-        VkWriteDescriptorSet descriptorWrite;
-        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.pNext = NULL;
-        descriptorWrite.dstSet = descriptorSets[i];
-        descriptorWrite.dstBinding = 0;
-        descriptorWrite.dstArrayElement = 0;
-
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorWrite.descriptorCount = 1;
-        
-        descriptorWrite.pBufferInfo = &bufferInfo;
-        descriptorWrite.pImageInfo = NULL; // Optional
-        descriptorWrite.pTexelBufferView = NULL; // Optional
-        
-        vkUpdateDescriptorSets(device, 1, &descriptorWrite, 0, NULL);
-    }
-    
-    return descriptorSets;
-    
-}
-
-
-
-void updateUniformBuffer(VkDevice device, VkExtent2D extent, uint32_t currentImage, clock_t start, VkDeviceMemory* uniformBufferMemory)
-{
-
-    clock_t current = clock() - start;
-    float time = (float) current / CLOCKS_PER_SEC;
-    
-    struct UniformBufferObject ubo;
-    mat4x4_identity(ubo.model);
-    mat4x4_rotate(ubo.model, ubo.model, 0.0f, 0.0f, 1.0f, time * (90.0f / 57.29578f));
-    mat4x4_look_at(ubo.view, (vec3){2.0f, 2.0f, 2.0f}, (vec3){0.0f, 0.0f, 0.0f}, (vec3){0.0f, 0.0f, 1.0f});
-    mat4x4_perspective(ubo.proj, (45.0f / 57.29578f), extent.width / (float) extent.height, 0.1f, 10.0f);
-    
-    ubo.proj[1][1] *= -1;
-
-    void* data;
-    vkMapMemory(device, uniformBufferMemory[currentImage], 0, sizeof(ubo), 0, &data);
-    memcpy(data, &ubo, sizeof(ubo));
-    vkUnmapMemory(device, uniformBufferMemory[currentImage]);
-
-}
-
-
-// Implementing Struct SwapChainObj, going to try and pass reference to see what happens.
-// VkSwapchainKHR swapChainKHR, VkCommandBuffer* commandBuffers
-//  Pased a reference to swapChainObj to reduce variable overhead.
 void drawCall(VkDevice device, VkQueue graphicsQueue, VkExtent2D extent, struct SwapChainObj* swapChainObj, struct syncAndFence syc, VkDeviceMemory* uniformBufferMemory, const int MAX_FRAMES_IN_FLIGHT, clock_t start)
 {
     
@@ -360,8 +376,6 @@ void drawCall(VkDevice device, VkQueue graphicsQueue, VkExtent2D extent, struct 
 
 
 
-
-
 /**
  This is the main function
  */
@@ -439,7 +453,7 @@ int main(void) {
  This block pertains to    createImageViews(); from tutorial
  */
 //  10. setup swapchain images
-//    VkImageView* swapChainImageViews = createImageView(device, swapChainKHR, presentsAnFormatsInfo);
+//    VkImageView* swapChainImageViews
     swapChainObj.swapChainImageViews = createImageView(device, swapChainObj.swapChainKHR, presentsAnFormatsInfo);
 //    Had to do this... its an incredibly important variable that I constantly use.
 //    int swapChainImagesCount = findSwapChainImageCount(device, swapChainKHR, presentsAnFormatsInfo);
@@ -458,24 +472,21 @@ int main(void) {
 //    TO DO:
 //    Add Vertex data here using the Vertex struct create above. Cast it here!!
     
-     
     /**
             Creating the vertex buffer for drawing data coordinates.
      */
      struct DrawingData vertices[4] =
     {
-        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
     };
     
     uint16_t indices[6] =
     {
         0, 1, 2, 2, 3, 0
     };
-    
-
      
      
     
@@ -533,7 +544,35 @@ int main(void) {
 //    VkCommandPool commandPool = createCommandPool(device, queueFamilyIndicesInfo.presentFamily);
     swapChainObj.commandPool = createCommandPool(device, queueFamilyIndicesInfo.presentFamily);
 
+/**
+    Texture Mapping
+    NOTE:: The assignment and subsequent initalisation of the text values below is the preferred way I believe
+    to initialised all the VK variables.
+ 
+    TO DO:
+    1. Finish texture implementation.
+    2. Re write buffer code to match this control flow.
+ */
+    
+    VkImage textureImage = VK_NULL_HANDLE;
+    VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
 
+    
+    createTextureImage(device, physicalDevice, swapChainObj.commandPool, graphicsQueue, &textureImage, &textureImageMemory);
+    
+    
+    
+    VkImageView textureImageView = VK_NULL_HANDLE;
+    createTextureImageView(device, textureImage, VK_FORMAT_R8G8B8A8_SRGB, &textureImageView);
+    
+    
+    VkSampler textureSampler = VK_NULL_HANDLE;
+    createTextureSampler(device, physicalDevice, &textureSampler);
+    
+/**
+    END Texture Mapping
+ */
+    
     
 /**
     This is the vertex buffer
@@ -628,7 +667,7 @@ int main(void) {
     
     
     VkDescriptorPool descriptorPool = createDescriptorPool(device, swapChainObj.swapChainImagesCount);
-    VkDescriptorSet* descriptorSets = createDescriptorSet(device, swapChainObj.swapChainImagesCount, uniformBuffers, descriptorSetLayout, descriptorPool);
+    VkDescriptorSet* descriptorSets = createDescriptorSet(device, swapChainObj.swapChainImagesCount, uniformBuffers, descriptorSetLayout, descriptorPool, textureImageView, textureSampler);
     
     
 //    12.3 : Creating the command buffer
@@ -665,6 +704,12 @@ int main(void) {
 
         // Swapchain clean up
         cleanUpSwapChain(device, swapChainObj);
+        
+        vkDestroySampler(device, textureSampler, NULL);
+        vkDestroyImageView(device, textureImageView, NULL);
+        
+        vkDestroyImage(device, textureImage, NULL);
+        vkFreeMemory(device, textureImageMemory, NULL);
         
         // Cleanup uniform buffers
         for (size_t i = 0; i < (size_t) swapChainObj.swapChainImagesCount; i++)

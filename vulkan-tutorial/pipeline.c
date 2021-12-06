@@ -113,7 +113,7 @@ VkPipeline createGraphicsPipeline(VkDevice device, VkPipelineLayout pipelineLayo
     };
     
 
-    VkVertexInputAttributeDescription attributeDescriptions[2];
+    VkVertexInputAttributeDescription attributeDescriptions[3];
     
     attributeDescriptions[0].binding = (uint32_t) 0;
     attributeDescriptions[0].location = (uint32_t) 0;
@@ -124,6 +124,11 @@ VkPipeline createGraphicsPipeline(VkDevice device, VkPipelineLayout pipelineLayo
     attributeDescriptions[1].location = (uint32_t) 1;
     attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
     attributeDescriptions[1].offset = (uint32_t) offsetof(struct DrawingData, color);
+    
+    attributeDescriptions[2].binding = (uint32_t) 0;
+    attributeDescriptions[2].location = (uint32_t) 2;
+    attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+    attributeDescriptions[2].offset = (uint32_t) offsetof(struct DrawingData, texCoord);
     
     VkPipelineVertexInputStateCreateInfo vertexInputInfo =
     {
