@@ -8,22 +8,23 @@
 #include "commandBuffer.h"
 
 
-VkFramebuffer* createSwapChainFramebuffers(VkDevice device, VkImageView* swapChainImageViews, int swapChainImagesCount, VkRenderPass renderPass, VkExtent2D extent)
+VkFramebuffer* createSwapChainFramebuffers(VkDevice device, VkImageView depthImageView, VkImageView* swapChainImageViews, int swapChainImagesCount, VkRenderPass renderPass, VkExtent2D extent)
 {
     VkFramebuffer* swapChainFramebuffers = malloc(sizeof(VkFramebuffer) * swapChainImagesCount);
     
     for (int i = 0; i < swapChainImagesCount; i++)
     {
-        VkImageView attachments[] =
+        VkImageView attachments[2] =
         {
-            swapChainImageViews[i]
+            swapChainImageViews[i],
+            depthImageView
         };
 
         VkFramebufferCreateInfo framebufferInfo =
         {
             .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
             .renderPass = renderPass,
-            .attachmentCount = 1,
+            .attachmentCount = (uint32_t) sizeof(attachments) / sizeof(attachments[0]),
             .pAttachments = attachments,
             .width = extent.width,
             .height = extent.height,
@@ -110,10 +111,17 @@ VkCommandBuffer* createCommandBuffers(VkDevice device, VkRenderPass renderPass, 
             .renderArea.extent = extent
         };
         
-        VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+        VkClearColorValue color = {0.0f, 0.0f, 0.0f, 1.0f};
+        VkClearDepthStencilValue depthStencil = {1.0f, 0};
         
-        renderPassInfo.clearValueCount = 1;
-        renderPassInfo.pClearValues = &clearColor;
+        VkClearValue clearValues[2];
+        clearValues[0].color = color;
+        clearValues[1].depthStencil = depthStencil;
+
+//        VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+        
+        renderPassInfo.clearValueCount = (uint32_t) sizeof(clearValues) / sizeof(clearValues[0]);
+        renderPassInfo.pClearValues = clearValues;
         
         vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);

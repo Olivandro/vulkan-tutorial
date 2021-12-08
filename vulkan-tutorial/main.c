@@ -9,9 +9,7 @@
 #include "graphicsDataBuffer.h"
 #include "commandBuffer.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#define STBI_ASSERT(x)
-#include "stb_image.h"
+
 
 
 //  Path to shader files, NOTE: create new new compiler macros for each individual shader file.
@@ -31,145 +29,35 @@ static const char* validationLayers =
 };
 
 
-void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize bufferSize, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer* buffer, VkDeviceMemory* bufferMemory)
+// Depth buffer functions
+
+VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, const VkFormat* candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
 {
-    VkBufferCreateInfo bufferInfo;
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.flags = 0;
-    bufferInfo.pNext = NULL;
-    bufferInfo.size = bufferSize;
-    bufferInfo.usage = usage;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    if (vkCreateBuffer(device, &bufferInfo, NULL, buffer) != VK_SUCCESS) {
-        printf("failed to create buffer!\n");
-    }
-    
-    VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, *buffer, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo;
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.pNext = NULL;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties, memProperties);
-
-    if (vkAllocateMemory(device, &allocInfo, NULL, bufferMemory) != VK_SUCCESS) {
-        printf("failed to allocate buffer memory!\n");
-    }
-
-    vkBindBufferMemory(device, *buffer, *bufferMemory, 0);
-}
-
-void transitionImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
-{
-    VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
-    
-    VkImageMemoryBarrier barrier;
-    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    barrier.pNext = NULL;
-    barrier.oldLayout = oldLayout;
-    barrier.newLayout = newLayout;
-    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image = image;
-    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    barrier.subresourceRange.baseMipLevel = 0;
-    barrier.subresourceRange.levelCount = 1;
-    barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount = 1;
-//    barrier.srcAccessMask = 0; // TODO
-//    barrier.dstAccessMask = 0; // TODO
-    
-    VkPipelineStageFlags sourceStage;
-    VkPipelineStageFlags destinationStage;
-
-    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-        barrier.srcAccessMask = 0;
-        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-        destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-        sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-    } else {
-        printf("unsupported layout transition!\n");
-    }
-
-    vkCmdPipelineBarrier(
-        commandBuffer,
-        sourceStage, destinationStage,
-        0,
-        0, NULL,
-        0, NULL,
-        1, &barrier
-    );
-
-    endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
-}
-
-void copyBufferToImage(VkDevice device, VkCommandPool commandPool, VkQueue graphicsQueue, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
-{
-    VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
-    
-    VkBufferImageCopy region =
+    foreach(VkFormat format, candidates)
     {
-        .imageOffset = {0, 0, 0},
-        .imageExtent = {width, height, 1}
-    };
-    
-    region.bufferOffset = 0;
-    region.bufferRowLength = 0;
-    region.bufferImageHeight = 0;
-
-    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    region.imageSubresource.mipLevel = 0;
-    region.imageSubresource.baseArrayLayer = 0;
-    region.imageSubresource.layerCount = 1;
-    
-    vkCmdCopyBufferToImage(
-        commandBuffer,
-        buffer,
-        image,
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        1,
-        &region
-    );
-
-    endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
-}
-
-
-
-void createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage* textureImage, VkDeviceMemory* textureImageMemory)
-{
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    
-    int texWidth, texHeight, texChannels;
-        stbi_uc* pixels = stbi_load(TEST_TEXTURE_FILE_PATH, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-        VkDeviceSize imageSize = texWidth * texHeight * 4;
-
-    if (!pixels) {
-        printf("failed to load texture image!\n");
+        VkFormatProperties props;
+        vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+        
+        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+            return format;
+        } else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+            return format;
+        }
     }
     
-    createBuffer(device, physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &stagingBuffer, &stagingBufferMemory);
+    assert();
+}
 
-    void* data;
-    vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
-        memcpy(data, pixels, (size_t) imageSize);
-    vkUnmapMemory(device, stagingBufferMemory);
-    
-    stbi_image_free(pixels);
+VkFormat findDepthFormat(VkPhysicalDevice physicalDevice)
+{
+    const VkFormat candidates[3] = {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT};
+    VkFormat format = findSupportedFormat(physicalDevice, candidates,VK_IMAGE_TILING_OPTIMAL,VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    return format;
+}
 
+void createDepthResources(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, uint32_t width, uint32_t height, VkImage* depthImage, VkDeviceMemory* depthImageMemory, VkImageView* depthImageView)
+{
+    VkFormat depthFormat = VK_FORMAT_D32_SFLOAT_S8_UINT; // findDepthFormat(physicalDevice);
     
 //    Create image & memory values
     VkImageCreateInfo imageInfo;
@@ -177,19 +65,19 @@ void createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice, VkComm
     imageInfo.flags = VK_NULL_HANDLE;
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width = texWidth;
-    imageInfo.extent.height = texHeight;
+    imageInfo.extent.width = width;
+    imageInfo.extent.height = height;
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = 1;
     imageInfo.arrayLayers = 1;
-    imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+    imageInfo.format = depthFormat;
     imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
     imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (vkCreateImage(device, &imageInfo, NULL, textureImage) != VK_SUCCESS) {
+    if (vkCreateImage(device, &imageInfo, NULL, depthImage) != VK_SUCCESS) {
         printf("failed to create image!\n");
     }
 
@@ -197,7 +85,7 @@ void createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice, VkComm
     vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
     
     VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(device, *textureImage, &memRequirements);
+    vkGetImageMemoryRequirements(device, *depthImage, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo;
     allocInfo.pNext = NULL;
@@ -205,85 +93,25 @@ void createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice, VkComm
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, memProperties);
 
-    if (vkAllocateMemory(device, &allocInfo, NULL, textureImageMemory) != VK_SUCCESS) {
+    if (vkAllocateMemory(device, &allocInfo, NULL, depthImageMemory) != VK_SUCCESS) {
         printf("failed to allocate image memory!\n");
     }
 
-    vkBindImageMemory(device, *textureImage, *textureImageMemory, 0);
-//    End of image & memory values
+    vkBindImageMemory(device, *depthImage, *depthImageMemory, 0);
+    //    End of image & memory values
     
-    transitionImageLayout(device, commandPool, graphicsQueue, *textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    VkImageView tempDepthImageView = VK_NULL_HANDLE;
+    createTextureImageView(device, *depthImage, depthFormat, &tempDepthImageView, VK_IMAGE_ASPECT_DEPTH_BIT);
+    *depthImageView = tempDepthImageView;
     
-    copyBufferToImage(device, commandPool, graphicsQueue, stagingBuffer, *textureImage, (uint32_t) texWidth, (uint32_t) texHeight);
-    
-    transitionImageLayout(device, commandPool, graphicsQueue, *textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    
-    vkDestroyBuffer(device, stagingBuffer, NULL);
-    vkFreeMemory(device, stagingBufferMemory, NULL);
-
+    transitionImageLayout(device, commandPool, graphicsQueue, *depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
 
-
-
-void createTextureImageView(VkDevice device, VkImage textureImage, VkFormat format, VkImageView* textureImageView)
-{
-    VkImageViewCreateInfo viewInfo;
-    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    viewInfo.pNext = NULL;
-    viewInfo.flags = VK_NULL_HANDLE;
-    viewInfo.image = textureImage;
-    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    viewInfo.format = format;
-    viewInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-    viewInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-    viewInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-    viewInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    viewInfo.subresourceRange.baseMipLevel = 0;
-    viewInfo.subresourceRange.levelCount = 1;
-    viewInfo.subresourceRange.baseArrayLayer = 0;
-    viewInfo.subresourceRange.layerCount = 1;
-
-    if (vkCreateImageView(device, &viewInfo, NULL, textureImageView) != VK_SUCCESS) {
-        printf("failed to create texture image view!\n");
-    }
-
-}
-
-
-void createTextureSampler(VkDevice device, VkPhysicalDevice physicalDevice, VkSampler* textureSampler)
-{
-    VkSamplerCreateInfo samplerInfo;
-    samplerInfo.pNext = NULL;
-    samplerInfo.flags = VK_NULL_HANDLE;
-    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = VK_FILTER_LINEAR;
-    samplerInfo.minFilter = VK_FILTER_LINEAR;
-    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    
-    samplerInfo.anisotropyEnable = VK_TRUE;
-    
-    VkPhysicalDeviceProperties properties;
-    vkGetPhysicalDeviceProperties(physicalDevice, &properties);
-    
-    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-    samplerInfo.unnormalizedCoordinates = VK_FALSE;
-    samplerInfo.compareEnable = VK_FALSE;
-    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerInfo.mipLodBias = 0.0f;
-    samplerInfo.minLod = 0.0f;
-    samplerInfo.maxLod = 0.0f;
-    
-    if (vkCreateSampler(device, &samplerInfo, NULL, textureSampler) != VK_SUCCESS) {
-            printf("failed to create texture sampler!\n");
-        }
-    
-}
-
-
+/**
+ VkImage depthImage = VK_NULL_HANDLE;
+ VkDeviceMemory depthImageMemory = VK_NULL_HANDLE;
+ VkImageView depthImageView = VK_NULL_HANDLE;
+ */
 
 /**
  This is the main draw function
@@ -475,17 +303,24 @@ int main(void) {
     /**
             Creating the vertex buffer for drawing data coordinates.
      */
-     struct DrawingData vertices[4] =
+     struct DrawingData vertices[8] =
     {
-        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}
+        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+        {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
+
+        {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+        {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+        {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+        {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
+        
     };
     
-    uint16_t indices[6] =
+    uint16_t indices[12] =
     {
-        0, 1, 2, 2, 3, 0
+        0, 1, 2, 2, 3, 0,
+        4, 5, 6, 6, 7, 4
     };
      
      
@@ -521,7 +356,7 @@ int main(void) {
     
 //    11.4 : Creating the rendering pass
 //    VkRenderPass renderPass = createRenderingPass(device, presentsAnFormatsInfo.availableFormats.format);
-    swapChainObj.renderPass = createRenderingPass(device, presentsAnFormatsInfo.availableFormats.format);
+    swapChainObj.renderPass = createRenderingPass(device, physicalDevice, presentsAnFormatsInfo.availableFormats.format);
 
 //    11.5 Create the Graphics pipeline
 //    TO DO:
@@ -534,16 +369,33 @@ int main(void) {
  Create the Command buffer, frame buffer and render pass command pool
  NOTE: This is were the errors in running the program are
  */
-//    12 : setting up the command buffer and frame buffers plue the render
-//    pass command pool
-//    VkFramebuffer* swapChainFramebuffers = createSwapChainFramebuffers(device, swapChainImageViews, swapChainImagesCount, renderPass, presentsAnFormatsInfo.extent);
-    swapChainObj.swapChainFramebuffers = createSwapChainFramebuffers(device, swapChainObj.swapChainImageViews, swapChainObj.swapChainImagesCount, swapChainObj.renderPass, presentsAnFormatsInfo.extent);
+
     
     
 //    12.2 : Lets create the commandpool now..
 //    VkCommandPool commandPool = createCommandPool(device, queueFamilyIndicesInfo.presentFamily);
     swapChainObj.commandPool = createCommandPool(device, queueFamilyIndicesInfo.presentFamily);
 
+    
+/**
+    Depth Buffing
+ */
+    
+    VkImage depthImage = VK_NULL_HANDLE;
+    VkDeviceMemory depthImageMemory = VK_NULL_HANDLE;
+    VkImageView depthImageView = VK_NULL_HANDLE;
+    createDepthResources(device, physicalDevice, swapChainObj.commandPool, graphicsQueue, presentsAnFormatsInfo.extent.width, presentsAnFormatsInfo.extent.height, &depthImage, &depthImageMemory, &depthImageView);
+    
+    
+/**
+    End of Depth Buffing
+ */
+    
+//    12 : setting up the command buffer and frame buffers plue the render
+//    pass command pool
+//    VkFramebuffer* swapChainFramebuffers = createSwapChainFramebuffers(device, swapChainImageViews, swapChainImagesCount, renderPass, presentsAnFormatsInfo.extent);
+    swapChainObj.swapChainFramebuffers = createSwapChainFramebuffers(device, depthImageView, swapChainObj.swapChainImageViews, swapChainObj.swapChainImagesCount, swapChainObj.renderPass, presentsAnFormatsInfo.extent);
+    
 /**
     Texture Mapping
     NOTE:: The assignment and subsequent initalisation of the text values below is the preferred way I believe
@@ -558,12 +410,12 @@ int main(void) {
     VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
 
     
-    createTextureImage(device, physicalDevice, swapChainObj.commandPool, graphicsQueue, &textureImage, &textureImageMemory);
+    createTextureImage(device, physicalDevice, swapChainObj.commandPool, graphicsQueue, &textureImage, &textureImageMemory, TEST_TEXTURE_FILE_PATH);
     
     
     
     VkImageView textureImageView = VK_NULL_HANDLE;
-    createTextureImageView(device, textureImage, VK_FORMAT_R8G8B8A8_SRGB, &textureImageView);
+    createTextureImageView(device, textureImage, VK_FORMAT_R8G8B8A8_SRGB, &textureImageView, VK_IMAGE_ASPECT_COLOR_BIT);
     
     
     VkSampler textureSampler = VK_NULL_HANDLE;
@@ -578,7 +430,7 @@ int main(void) {
     This is the vertex buffer
  */
     
-    VkDeviceSize bufferSize = sizeof(vertices[0]) * sizeof(vertices);
+    VkDeviceSize bufferSize = (sizeof(vertices) / sizeof(vertices[0])) * sizeof(vertices);
     
     
     /**
@@ -595,7 +447,7 @@ int main(void) {
     
     void* data;
     vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, vertices, bufferSize);
+    memcpy(data, vertices, (size_t) bufferSize);
     vkUnmapMemory(device, stagingBufferMemory);
     
     /**
@@ -619,7 +471,7 @@ int main(void) {
             End of Vertex Buffer implementation...
      */
     
-    VkDeviceSize indicesBufferSize = sizeof(indices[0]) * sizeof(indices);
+    VkDeviceSize indicesBufferSize = (sizeof(indices) / sizeof(indices[0])) * sizeof(indices);
 
     /**
         These 3 functions are combined into on function in the Vulkan tutorial...
@@ -672,7 +524,7 @@ int main(void) {
     
 //    12.3 : Creating the command buffer
 //    VkCommandBuffer* commandBuffers = createCommandBuffers(device, renderPass, graphicsPipeline, swapChainFramebuffers, commandPool, swapChainImagesCount, presentsAnFormatsInfo.extent);
-    swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.pipelineLayout, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent, vertexBuffer, indicesBuffer, (uint32_t) sizeof(indices), descriptorSets);
+    swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.pipelineLayout, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent, vertexBuffer, indicesBuffer, (uint32_t) sizeof(indices) / sizeof(indices[0]), descriptorSets);
         
     
 //  13 : rasterisation and Presentation of the triangle that we are drawing
@@ -704,6 +556,10 @@ int main(void) {
 
         // Swapchain clean up
         cleanUpSwapChain(device, swapChainObj);
+        
+        vkDestroyImageView(device, depthImageView, NULL);
+        vkDestroyImage(device, depthImage, NULL);
+        vkFreeMemory(device, depthImageMemory, NULL);
         
         vkDestroySampler(device, textureSampler, NULL);
         vkDestroyImageView(device, textureImageView, NULL);

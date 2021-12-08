@@ -40,6 +40,15 @@
 //We redefine assert for our own purposes
 #define assert() return -1
 
+#define foreach(item, array) \
+    for(int keep = 1, \
+            count = 0,\
+            size = sizeof (array) / sizeof (array[0]); \
+        keep && count != size; \
+        keep = !keep, count++) \
+      for(item = (array) + count; keep; keep = !keep)
+
+
 
 /**
  Vulkan data Structs 
@@ -63,7 +72,7 @@ struct availablePresentsAnFormats
 };
 
 struct DrawingData {
-    vec2 pos;
+    vec3 pos;
     vec3 color;
     vec2 texCoord;
 };
@@ -96,5 +105,6 @@ struct syncAndFence
     VkFence* inFlightFences;
     VkFence* imagesInFlight;
 };
+
 
 #endif /* geninc_h */

@@ -10,7 +10,7 @@
 
 #include "geninc.h"
 
-VkFramebuffer* createSwapChainFramebuffers(VkDevice device, VkImageView* swapChainImageViews, int swapChainImagesCount, VkRenderPass renderPass, VkExtent2D extent);
+VkFramebuffer* createSwapChainFramebuffers(VkDevice device, VkImageView depthImageView, VkImageView* swapChainImageViews, int swapChainImagesCount, VkRenderPass renderPass, VkExtent2D extent);
 
 VkCommandPool createCommandPool(VkDevice device, uint32_t presentFamily);
 

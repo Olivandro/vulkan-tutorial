@@ -14,8 +14,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "689"
-            endingLineNumber = "689"
+            startingLineNumber = "541"
+            endingLineNumber = "541"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -30,8 +30,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "383"
-            endingLineNumber = "383"
+            startingLineNumber = "211"
+            endingLineNumber = "211"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -46,8 +46,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "432"
-            endingLineNumber = "432"
+            startingLineNumber = "260"
+            endingLineNumber = "260"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -94,8 +94,8 @@
             filePath = "vulkan-tutorial/commandBuffer.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "89"
-            endingLineNumber = "89"
+            startingLineNumber = "90"
+            endingLineNumber = "90"
             landmarkName = "createCommandBuffers(device, renderPass, graphicsPipeline, pipelineLayout, swapChainFramebuffers, commandPool, swapChainImagesCount, extent, vertexBuffer, indexBuffer, indicesSize, descriptorSets)"
             landmarkType = "9">
          </BreakpointContent>
@@ -110,8 +110,8 @@
             filePath = "vulkan-tutorial/commandBuffer.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "74"
-            endingLineNumber = "74"
+            startingLineNumber = "75"
+            endingLineNumber = "75"
             landmarkName = "createCommandBuffers(device, renderPass, graphicsPipeline, pipelineLayout, swapChainFramebuffers, commandPool, swapChainImagesCount, extent, vertexBuffer, indexBuffer, indicesSize, descriptorSets)"
             landmarkType = "9">
          </BreakpointContent>
@@ -126,8 +126,8 @@
             filePath = "vulkan-tutorial/commandBuffer.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "143"
-            endingLineNumber = "143"
+            startingLineNumber = "151"
+            endingLineNumber = "151"
             landmarkName = "createCommandBuffers(device, renderPass, graphicsPipeline, pipelineLayout, swapChainFramebuffers, commandPool, swapChainImagesCount, extent, vertexBuffer, indexBuffer, indicesSize, descriptorSets)"
             landmarkType = "9">
          </BreakpointContent>
@@ -142,8 +142,8 @@
             filePath = "vulkan-tutorial/commandBuffer.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "66"
-            endingLineNumber = "66"
+            startingLineNumber = "67"
+            endingLineNumber = "67"
             landmarkName = "createCommandBuffers(device, renderPass, graphicsPipeline, pipelineLayout, swapChainFramebuffers, commandPool, swapChainImagesCount, extent, vertexBuffer, indexBuffer, indicesSize, descriptorSets)"
             landmarkType = "9">
          </BreakpointContent>
@@ -158,8 +158,8 @@
             filePath = "vulkan-tutorial/commandBuffer.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "86"
-            endingLineNumber = "86"
+            startingLineNumber = "87"
+            endingLineNumber = "87"
             landmarkName = "createCommandBuffers(device, renderPass, graphicsPipeline, pipelineLayout, swapChainFramebuffers, commandPool, swapChainImagesCount, extent, vertexBuffer, indexBuffer, indicesSize, descriptorSets)"
             landmarkType = "9">
          </BreakpointContent>
@@ -270,8 +270,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "706"
-            endingLineNumber = "706"
+            startingLineNumber = "558"
+            endingLineNumber = "558"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -286,8 +286,8 @@
             filePath = "vulkan-tutorial/commandBuffer.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "178"
-            endingLineNumber = "178"
+            startingLineNumber = "186"
+            endingLineNumber = "186"
             landmarkName = "createSyncAndFence(device, MAX_FRAMES_IN_FLIGHT, swapChainImagesCount)"
             landmarkType = "9">
          </BreakpointContent>
@@ -302,8 +302,8 @@
             filePath = "vulkan-tutorial/commandBuffer.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "179"
-            endingLineNumber = "179"
+            startingLineNumber = "187"
+            endingLineNumber = "187"
             landmarkName = "createSyncAndFence(device, MAX_FRAMES_IN_FLIGHT, swapChainImagesCount)"
             landmarkType = "9">
          </BreakpointContent>
@@ -350,8 +350,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "445"
-            endingLineNumber = "445"
+            startingLineNumber = "273"
+            endingLineNumber = "273"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -382,8 +382,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "300"
-            endingLineNumber = "300"
+            startingLineNumber = "128"
+            endingLineNumber = "128"
             landmarkName = "drawCall(device, graphicsQueue, extent, swapChainObj, syc, uniformBufferMemory, MAX_FRAMES_IN_FLIGHT, start)"
             landmarkType = "9">
          </BreakpointContent>
@@ -398,8 +398,8 @@
             filePath = "vulkan-tutorial/pipeline.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "138"
-            endingLineNumber = "138"
+            startingLineNumber = "176"
+            endingLineNumber = "176"
             landmarkName = "createGraphicsPipeline(device, pipelineLayout, renderPass, extent, shaderStages)"
             landmarkType = "9">
          </BreakpointContent>
@@ -414,8 +414,8 @@
             filePath = "vulkan-tutorial/commandBuffer.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "119"
-            endingLineNumber = "119"
+            startingLineNumber = "127"
+            endingLineNumber = "127"
             landmarkName = "createCommandBuffers(device, renderPass, graphicsPipeline, pipelineLayout, swapChainFramebuffers, commandPool, swapChainImagesCount, extent, vertexBuffer, indexBuffer, indicesSize, descriptorSets)"
             landmarkType = "9">
          </BreakpointContent>
@@ -430,8 +430,8 @@
             filePath = "vulkan-tutorial/pipeline.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "139"
-            endingLineNumber = "139"
+            startingLineNumber = "177"
+            endingLineNumber = "177"
             landmarkName = "createGraphicsPipeline(device, pipelineLayout, renderPass, extent, shaderStages)"
             landmarkType = "9">
          </BreakpointContent>
@@ -446,8 +446,8 @@
             filePath = "vulkan-tutorial/pipeline.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "252"
-            endingLineNumber = "252"
+            startingLineNumber = "306"
+            endingLineNumber = "306"
             landmarkName = "createGraphicsPipeline(device, pipelineLayout, renderPass, extent, shaderStages)"
             landmarkType = "9">
          </BreakpointContent>
@@ -462,8 +462,8 @@
             filePath = "vulkan-tutorial/pipeline.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "133"
-            endingLineNumber = "133"
+            startingLineNumber = "171"
+            endingLineNumber = "171"
             landmarkName = "createGraphicsPipeline(device, pipelineLayout, renderPass, extent, shaderStages)"
             landmarkType = "9">
          </BreakpointContent>
@@ -478,8 +478,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "588"
-            endingLineNumber = "588"
+            startingLineNumber = "440"
+            endingLineNumber = "440"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -494,8 +494,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "605"
-            endingLineNumber = "605"
+            startingLineNumber = "457"
+            endingLineNumber = "457"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -510,8 +510,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "622"
-            endingLineNumber = "622"
+            startingLineNumber = "474"
+            endingLineNumber = "474"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -526,8 +526,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "628"
-            endingLineNumber = "628"
+            startingLineNumber = "480"
+            endingLineNumber = "480"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -542,8 +542,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "675"
-            endingLineNumber = "675"
+            startingLineNumber = "527"
+            endingLineNumber = "527"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -552,47 +552,15 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "AF66FD89-F91A-4EB2-9EC7-504F0F68CBC8"
-            shouldBeEnabled = "No"
+            shouldBeEnabled = "Yes"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "vulkan-tutorial/commandBuffer.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "131"
-            endingLineNumber = "131"
+            startingLineNumber = "139"
+            endingLineNumber = "139"
             landmarkName = "createCommandBuffers(device, renderPass, graphicsPipeline, pipelineLayout, swapChainFramebuffers, commandPool, swapChainImagesCount, extent, vertexBuffer, indexBuffer, indicesSize, descriptorSets)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "7D66A09F-E5FA-4D7A-B0D3-D3900DA612CC"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "vulkan-tutorial/main.c"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "64"
-            endingLineNumber = "64"
-            landmarkName = "createBuffer(device, physicalDevice, bufferSize, usage, properties, buffer, bufferMemory)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "5604368A-15B9-4EA9-BAED-84258625E87F"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "vulkan-tutorial/main.c"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "166"
-            endingLineNumber = "166"
-            landmarkName = "createTextureImage(device, physicalDevice, commandPool, graphicsQueue, textureImage, textureImageMemory)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>
@@ -606,8 +574,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "715"
-            endingLineNumber = "715"
+            startingLineNumber = "571"
+            endingLineNumber = "571"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -622,8 +590,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "723"
-            endingLineNumber = "723"
+            startingLineNumber = "579"
+            endingLineNumber = "579"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -638,8 +606,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "762"
-            endingLineNumber = "762"
+            startingLineNumber = "618"
+            endingLineNumber = "618"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -654,8 +622,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "756"
-            endingLineNumber = "756"
+            startingLineNumber = "612"
+            endingLineNumber = "612"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -670,8 +638,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "757"
-            endingLineNumber = "757"
+            startingLineNumber = "613"
+            endingLineNumber = "613"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -686,8 +654,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "758"
-            endingLineNumber = "758"
+            startingLineNumber = "614"
+            endingLineNumber = "614"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -702,8 +670,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "759"
-            endingLineNumber = "759"
+            startingLineNumber = "615"
+            endingLineNumber = "615"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -718,8 +686,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "760"
-            endingLineNumber = "760"
+            startingLineNumber = "616"
+            endingLineNumber = "616"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -734,8 +702,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "581"
-            endingLineNumber = "581"
+            startingLineNumber = "433"
+            endingLineNumber = "433"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -750,8 +718,8 @@
             filePath = "vulkan-tutorial/main.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "561"
-            endingLineNumber = "561"
+            startingLineNumber = "413"
+            endingLineNumber = "413"
             landmarkName = "main()"
             landmarkType = "9">
          </BreakpointContent>
@@ -760,86 +728,6 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "E0E29EF9-B5F3-42E0-A4A0-200CEE1DF8A6"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "vulkan-tutorial/main.c"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "710"
-            endingLineNumber = "710"
-            landmarkName = "main()"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "0D3A718D-9799-4363-8331-6D196BAE69C8"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "vulkan-tutorial/main.c"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "217"
-            endingLineNumber = "217"
-            landmarkName = "createTextureImage(device, physicalDevice, commandPool, graphicsQueue, textureImage, textureImageMemory)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "6C75C156-CD38-4D9D-B989-DF0318122339"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "vulkan-tutorial/main.c"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "219"
-            endingLineNumber = "219"
-            landmarkName = "createTextureImage(device, physicalDevice, commandPool, graphicsQueue, textureImage, textureImageMemory)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "0D669916-4457-4EB2-8A29-447DFE69033D"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "vulkan-tutorial/main.c"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "215"
-            endingLineNumber = "215"
-            landmarkName = "createTextureImage(device, physicalDevice, commandPool, graphicsQueue, textureImage, textureImageMemory)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "09142E75-0F03-49C3-A34A-26D4876026A4"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "vulkan-tutorial/main.c"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "247"
-            endingLineNumber = "247"
-            landmarkName = "createTextureImageView(device, textureImage, format, textureImageView)"
-            landmarkType = "9">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "C66A5A06-CB06-4CE8-95F1-76993DB4516D"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
@@ -855,6 +743,22 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
+            uuid = "C66A5A06-CB06-4CE8-95F1-76993DB4516D"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "vulkan-tutorial/main.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "418"
+            endingLineNumber = "418"
+            landmarkName = "main()"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
             uuid = "01411944-0456-4388-9E3B-27168719B47E"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -862,8 +766,8 @@
             filePath = "vulkan-tutorial/graphicsDataBuffer.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "159"
-            endingLineNumber = "159"
+            startingLineNumber = "168"
+            endingLineNumber = "168"
             landmarkName = "createDescriptorSetLayout(device)"
             landmarkType = "9">
          </BreakpointContent>
@@ -878,8 +782,8 @@
             filePath = "vulkan-tutorial/graphicsDataBuffer.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "276"
-            endingLineNumber = "276"
+            startingLineNumber = "285"
+            endingLineNumber = "285"
             landmarkName = "createDescriptorSet(device, swapChainImagesCount, uniformBuffers, descriptorSetLayout, descriptorPool, textureImageView, textureSampler)"
             landmarkType = "9">
          </BreakpointContent>
@@ -894,8 +798,8 @@
             filePath = "vulkan-tutorial/graphicsDataBuffer.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "279"
-            endingLineNumber = "279"
+            startingLineNumber = "288"
+            endingLineNumber = "288"
             landmarkName = "createDescriptorSet(device, swapChainImagesCount, uniformBuffers, descriptorSetLayout, descriptorPool, textureImageView, textureSampler)"
             landmarkType = "9">
          </BreakpointContent>
@@ -910,9 +814,121 @@
             filePath = "vulkan-tutorial/graphicsDataBuffer.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "161"
-            endingLineNumber = "161"
+            startingLineNumber = "170"
+            endingLineNumber = "170"
             landmarkName = "createDescriptorSetLayout(device)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A9B399EB-B7E1-4AC7-943A-4DCAEACD9A54"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "vulkan-tutorial/include/geninc.h"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "46"
+            endingLineNumber = "46"
+            landmarkName = "unknown"
+            landmarkType = "0">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "7ED66A88-B231-43ED-8944-FAD6A1D77DC7"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "vulkan-tutorial/main.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "359"
+            endingLineNumber = "359"
+            landmarkName = "main()"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "79B86A60-F8E0-4949-A7A5-2BABF548E279"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "vulkan-tutorial/pipeline.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "98"
+            endingLineNumber = "98"
+            landmarkName = "createRenderingPass(device, physicalDevice, VkColourFormat)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "D3BC58CB-87AA-4033-9964-5BAB20772C9A"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "vulkan-tutorial/pipeline.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "87"
+            endingLineNumber = "87"
+            landmarkName = "createRenderingPass(device, physicalDevice, VkColourFormat)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "D18E756E-5857-4219-95B7-E2F38F973DB1"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "vulkan-tutorial/pipeline.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "305"
+            endingLineNumber = "305"
+            landmarkName = "createGraphicsPipeline(device, pipelineLayout, renderPass, extent, shaderStages)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "67A0A94D-E1C5-408D-A565-3B75449FF8BB"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "vulkan-tutorial/main.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "366"
+            endingLineNumber = "366"
+            landmarkName = "main()"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "23B102AF-7C1C-4B65-A24D-B60A80F27B32"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "vulkan-tutorial/pipeline.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "128"
+            endingLineNumber = "128"
+            landmarkName = "createRenderingPass(device, physicalDevice, VkColourFormat)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>

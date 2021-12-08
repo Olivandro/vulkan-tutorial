@@ -12,7 +12,7 @@
 
 VkPipelineLayout createPipelineLayout(VkDevice device, VkDescriptorSetLayout descriptorSetLayout);
 
-VkRenderPass createRenderingPass(VkDevice device, VkFormat VkColourFormat);
+VkRenderPass createRenderingPass(VkDevice device, VkPhysicalDevice physicalDevice, VkFormat VkColourFormat);
 
 VkPipeline createGraphicsPipeline(VkDevice device, VkPipelineLayout pipelineLayout, VkRenderPass renderPass, VkExtent2D extent, VkPipelineShaderStageCreateInfo shaderStages[]);
 
