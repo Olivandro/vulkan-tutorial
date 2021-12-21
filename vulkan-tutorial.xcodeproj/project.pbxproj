@@ -19,8 +19,10 @@
 		99809112257AB12000D38F4E /* libSPIRV-Tools-shared.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 998090FE257AAFE500D38F4E /* libSPIRV-Tools-shared.dylib */; };
 		99868B8925AB2B66001A038F /* pipeline.c in Sources */ = {isa = PBXBuildFile; fileRef = 99868B8825AB2B66001A038F /* pipeline.c */; };
 		9994453E2528B867007B6D82 /* libvulkan.1.2.148.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 999445302528B66D007B6D82 /* libvulkan.1.2.148.dylib */; };
+		999B0D63277233AA0038AE30 /* loadModel.c in Sources */ = {isa = PBXBuildFile; fileRef = 999B0D62277233AA0038AE30 /* loadModel.c */; };
 		99C5F58425AB2888006D765B /* swapChain.c in Sources */ = {isa = PBXBuildFile; fileRef = 99C5F58325AB2888006D765B /* swapChain.c */; };
 		99E5C0CA2523D7410071F105 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 99E5C0C92523D7410071F105 /* main.c */; };
+		99EC1C5627610D4A000F378D /* geninc.c in Sources */ = {isa = PBXBuildFile; fileRef = 99EC1C5527610D4A000F378D /* geninc.c */; };
 		99FC00BC25AB2CFB005791E2 /* commandBuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = 99FC00BB25AB2CFB005791E2 /* commandBuffer.c */; };
 /* End PBXBuildFile section */
 
@@ -48,14 +50,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		990D840E275401F800F466E9 /* statue.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = statue.jpg; path = ../../../../Desktop/statue.jpg; sourceTree = "<group>"; };
 		991BDCB625A5075C00056CA1 /* geninc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = geninc.h; sourceTree = "<group>"; };
 		991CE11825AB127C002D2C06 /* graphicFamilyVK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = graphicFamilyVK.h; sourceTree = "<group>"; };
 		991CE11925AB127C002D2C06 /* graphicFamilyVK.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = graphicFamilyVK.c; sourceTree = "<group>"; };
 		992DBE0325AB0E6B00BC39C1 /* deviceVK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = deviceVK.h; sourceTree = "<group>"; };
 		992DBE0425AB0E6B00BC39C1 /* deviceVK.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = deviceVK.c; sourceTree = "<group>"; };
 		9950ED5D2753D6CF009F9846 /* stb_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
-		9950ED5F2753DA38009F9846 /* sdl-fighf-logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "sdl-fighf-logo.png"; path = "../../../../Desktop/sdl-fighf-logo.png"; sourceTree = "<group>"; };
 		9950ED602753DB34009F9846 /* graphicsDataBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = graphicsDataBuffer.h; sourceTree = "<group>"; };
 		9950ED612753DB34009F9846 /* graphicsDataBuffer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = graphicsDataBuffer.c; sourceTree = "<group>"; };
 		995587722595117900AED95E /* shaders.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = shaders.h; sourceTree = "<group>"; };
@@ -76,6 +76,8 @@
 		9994452E2528B641007B6D82 /* libglfw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglfw3.a; path = "../glfw-3.3.2.bin.MACOS/lib-macos/libglfw3.a"; sourceTree = "<group>"; };
 		999445302528B66D007B6D82 /* libvulkan.1.2.148.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libvulkan.1.2.148.dylib; path = "../vulkansdk-macos-1.2.148.1/macOS/lib/libvulkan.1.2.148.dylib"; sourceTree = "<group>"; };
 		999445362528B761007B6D82 /* linmath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = linmath.h; path = ../../../linmath.h/linmath.h; sourceTree = "<group>"; };
+		999B0D61277233AA0038AE30 /* loadModel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = loadModel.h; sourceTree = "<group>"; };
+		999B0D62277233AA0038AE30 /* loadModel.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = loadModel.c; sourceTree = "<group>"; };
 		99A0379925778B9E006BA209 /* shader.vert */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; path = shader.vert; sourceTree = "<group>"; };
 		99A0379A25778BBB006BA209 /* shader.frag */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; path = shader.frag; sourceTree = "<group>"; };
 		99A9D4232528CA91000BCD3C /* libMoltenVK.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMoltenVK.a; path = "../vulkansdk-macos-1.2.148.1/MoltenVK/macOS/static/libMoltenVK.a"; sourceTree = "<group>"; };
@@ -88,6 +90,10 @@
 		99E5C0C92523D7410071F105 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		99E5C0E72523E5060071F105 /* libglfw3.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglfw3.a; path = "../glfw-3.3.2/src/libglfw3.a"; sourceTree = "<group>"; };
 		99E5C0EE2523E8CB0071F105 /* libglfw.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.3.dylib; path = "../glfw-3.3.2.bin.MACOS/lib-macos/libglfw.3.dylib"; sourceTree = "<group>"; };
+		99EC1C5527610D4A000F378D /* geninc.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = geninc.c; sourceTree = "<group>"; };
+		99EC1C5727612105000F378D /* models */ = {isa = PBXFileReference; lastKnownFileType = folder; path = models; sourceTree = "<group>"; };
+		99EC1C5827612105000F378D /* textures */ = {isa = PBXFileReference; lastKnownFileType = folder; path = textures; sourceTree = "<group>"; };
+		99EC1C5A276122FF000F378D /* tinyobj_loader_c.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tinyobj_loader_c.h; sourceTree = "<group>"; };
 		99FC00BA25AB2CFB005791E2 /* commandBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = commandBuffer.h; sourceTree = "<group>"; };
 		99FC00BB25AB2CFB005791E2 /* commandBuffer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = commandBuffer.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -113,6 +119,7 @@
 			children = (
 				999445362528B761007B6D82 /* linmath.h */,
 				9950ED5D2753D6CF009F9846 /* stb_image.h */,
+				99EC1C5A276122FF000F378D /* tinyobj_loader_c.h */,
 			);
 			path = dep;
 			sourceTree = "<group>";
@@ -120,8 +127,8 @@
 		9950ED5E2753D9E5009F9846 /* assets */ = {
 			isa = PBXGroup;
 			children = (
-				990D840E275401F800F466E9 /* statue.jpg */,
-				9950ED5F2753DA38009F9846 /* sdl-fighf-logo.png */,
+				99EC1C5727612105000F378D /* models */,
+				99EC1C5827612105000F378D /* textures */,
 			);
 			path = assets;
 			sourceTree = "<group>";
@@ -129,6 +136,7 @@
 		99600DAC25778DC000C9C3B0 /* include */ = {
 			isa = PBXGroup;
 			children = (
+				999B0D61277233AA0038AE30 /* loadModel.h */,
 				9950ED602753DB34009F9846 /* graphicsDataBuffer.h */,
 				99C5F58225AB2888006D765B /* swapChain.h */,
 				991CE11825AB127C002D2C06 /* graphicFamilyVK.h */,
@@ -180,6 +188,7 @@
 				99A0379725770030006BA209 /* shaders */,
 				993BE4212525000000EAF159 /* dep */,
 				99E5C0C92523D7410071F105 /* main.c */,
+				999B0D62277233AA0038AE30 /* loadModel.c */,
 				99FC00BB25AB2CFB005791E2 /* commandBuffer.c */,
 				99868B8825AB2B66001A038F /* pipeline.c */,
 				99C5F58325AB2888006D765B /* swapChain.c */,
@@ -188,6 +197,7 @@
 				995587732595117900AED95E /* shaders.c */,
 				9978250925901F4500F44260 /* initVK.c */,
 				9950ED612753DB34009F9846 /* graphicsDataBuffer.c */,
+				99EC1C5527610D4A000F378D /* geninc.c */,
 			);
 			path = "vulkan-tutorial";
 			sourceTree = "<group>";
@@ -270,12 +280,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				992DBE0525AB0E6B00BC39C1 /* deviceVK.c in Sources */,
+				999B0D63277233AA0038AE30 /* loadModel.c in Sources */,
 				99FC00BC25AB2CFB005791E2 /* commandBuffer.c in Sources */,
 				9950ED622753DB34009F9846 /* graphicsDataBuffer.c in Sources */,
 				9978250A25901F4500F44260 /* initVK.c in Sources */,
 				99C5F58425AB2888006D765B /* swapChain.c in Sources */,
 				99868B8925AB2B66001A038F /* pipeline.c in Sources */,
 				991CE11A25AB127C002D2C06 /* graphicFamilyVK.c in Sources */,
+				99EC1C5627610D4A000F378D /* geninc.c in Sources */,
 				995587742595117900AED95E /* shaders.c in Sources */,
 				99E5C0CA2523D7410071F105 /* main.c in Sources */,
 			);

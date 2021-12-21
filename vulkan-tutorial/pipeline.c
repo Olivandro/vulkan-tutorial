@@ -57,25 +57,8 @@ VkRenderPass createRenderingPass(VkDevice device, VkPhysicalDevice physicalDevic
     
 //    Additional VkAttachmentDescription & VkAttachmentReference for Depth
     VkAttachmentDescription depthAttachment;
-//    const VkFormat candidates[3] = {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT};
-//    VkImageTiling tiling = VK_IMAGE_TILING_OPTIMAL;
-//    VkFormatFeatureFlags features = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
-//    foreach(VkFormat format, candidates)
-//    {
-//        VkFormatProperties props;
-//        vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
-//
-//        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
-//            depthAttachment.format = format;
-//        } else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
-//            depthAttachment.format = format;
-//        }
-//        else {
-//            assert();
-//        }
-//    }
     depthAttachment.flags = VK_NULL_HANDLE;
-    depthAttachment.format = VK_FORMAT_D32_SFLOAT_S8_UINT;
+    depthAttachment.format = findDepthFormat(physicalDevice);
     depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -216,8 +199,9 @@ VkPipeline createGraphicsPipeline(VkDevice device, VkPipelineLayout pipelineLayo
         .rasterizerDiscardEnable = VK_FALSE,
         .polygonMode = VK_POLYGON_MODE_FILL,
         .lineWidth = 1.0f,
-        .cullMode = VK_CULL_MODE_BACK_BIT,
-        .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE, //VK_FRONT_FACE_CLOCKWISE,
+        .cullMode =  VK_CULL_MODE_BACK_BIT, // VK_CULL_MODE_FRONT_BIT
+//        Had to use front face clockwise due to flipping x axis
+        .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE, //VK_FRONT_FACE_CLOCKWISE, //
         .depthBiasEnable = VK_FALSE,
         .depthBiasConstantFactor = 0.0f, // Optional
         .depthBiasClamp = 0.0f, // Optional
@@ -260,6 +244,10 @@ VkPipeline createGraphicsPipeline(VkDevice device, VkPipelineLayout pipelineLayo
         .blendConstants[3] = 0.0f // Optional
     };
     
+    /**
+        Additional data struct that is required by DepthStencil struct
+        To Do: Research this struct to implement correct data.
+     */
     VkStencilOpState state = {VK_STENCIL_OP_KEEP, VK_STENCIL_OP_KEEP, VK_STENCIL_OP_KEEP, VK_STENCIL_OP_KEEP};
     
     VkPipelineDepthStencilStateCreateInfo depthStencil;

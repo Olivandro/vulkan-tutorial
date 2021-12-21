@@ -11,10 +11,6 @@
 #include "stb_image.h"
 
 
-bool hasStencilComponent(VkFormat format)
-{
-    return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
-}
 
 VkBuffer createVertexBuffer(VkDevice device, VkDeviceSize bufferSize, VkBufferUsageFlags usage)
 {
@@ -303,6 +299,9 @@ void updateUniformBuffer(VkDevice device, VkExtent2D extent, uint32_t currentIma
     mat4x4_perspective(ubo.proj, (45.0f / 57.29578f), extent.width / (float) extent.height, 0.1f, 10.0f);
     
     ubo.proj[1][1] *= -1;
+//    Flipping x axis to correctly display texture in correct orientation
+//    ubo.proj[0][0] *= -1;
+
 
     void* data;
     vkMapMemory(device, uniformBufferMemory[currentImage], 0, sizeof(ubo), 0, &data);
@@ -445,13 +444,13 @@ void copyBufferToImage(VkDevice device, VkCommandPool commandPool, VkQueue graph
 
 
 
-void createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage* textureImage, VkDeviceMemory* textureImageMemory, char* TEST_TEXTURE_FILE_PATH)
+void createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, VkImage* textureImage, VkDeviceMemory* textureImageMemory, char* TEXTURE_FILE_PATH)
 {
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
     
     int texWidth, texHeight, texChannels;
-        stbi_uc* pixels = stbi_load(TEST_TEXTURE_FILE_PATH, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+        stbi_uc* pixels = stbi_load(TEXTURE_FILE_PATH, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
         VkDeviceSize imageSize = texWidth * texHeight * 4;
 
     if (!pixels) {
@@ -578,4 +577,57 @@ void createTextureSampler(VkDevice device, VkPhysicalDevice physicalDevice, VkSa
             printf("failed to create texture sampler!\n");
         }
     
+}
+
+
+void createDepthResources(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, uint32_t width, uint32_t height, VkImage* depthImage, VkDeviceMemory* depthImageMemory, VkImageView* depthImageView)
+{
+    VkFormat depthFormat = findDepthFormat(physicalDevice); //VK_FORMAT_D32_SFLOAT_S8_UINT; //
+    
+//    Create image & memory values
+    VkImageCreateInfo imageInfo;
+    imageInfo.pNext = NULL;
+    imageInfo.flags = VK_NULL_HANDLE;
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.extent.width = width;
+    imageInfo.extent.height = height;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = depthFormat;
+    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+    if (vkCreateImage(device, &imageInfo, NULL, depthImage) != VK_SUCCESS) {
+        printf("failed to create image!\n");
+    }
+
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+    
+    VkMemoryRequirements memRequirements;
+    vkGetImageMemoryRequirements(device, *depthImage, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo;
+    allocInfo.pNext = NULL;
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, memProperties);
+
+    if (vkAllocateMemory(device, &allocInfo, NULL, depthImageMemory) != VK_SUCCESS) {
+        printf("failed to allocate image memory!\n");
+    }
+
+    vkBindImageMemory(device, *depthImage, *depthImageMemory, 0);
+    //    End of image & memory values
+    
+    VkImageView tempDepthImageView = VK_NULL_HANDLE;
+    createTextureImageView(device, *depthImage, depthFormat, &tempDepthImageView, VK_IMAGE_ASPECT_DEPTH_BIT);
+    *depthImageView = tempDepthImageView;
+    
+    transitionImageLayout(device, commandPool, graphicsQueue, *depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }

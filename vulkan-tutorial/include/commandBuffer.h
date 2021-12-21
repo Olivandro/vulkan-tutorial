@@ -14,7 +14,7 @@ VkFramebuffer* createSwapChainFramebuffers(VkDevice device, VkImageView depthIma
 
 VkCommandPool createCommandPool(VkDevice device, uint32_t presentFamily);
 
-VkCommandBuffer* createCommandBuffers(VkDevice device, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkPipelineLayout pipelineLayout, VkFramebuffer* swapChainFramebuffers, VkCommandPool commandPool, int swapChainImagesCount, VkExtent2D extent, VkBuffer vertexBuffer, VkBuffer indexBuffer, uint32_t indicesSize, VkDescriptorSet* descriptorSets);
+VkCommandBuffer* createCommandBuffers(VkDevice device, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkPipelineLayout pipelineLayout, VkFramebuffer* swapChainFramebuffers, VkCommandPool commandPool, int swapChainImagesCount, VkExtent2D extent, VkBuffer vertexBuffer, VkBuffer indexBuffer, uint32_t num_vertices, uint32_t indicesSize, VkDescriptorSet* descriptorSets);
 
 struct syncAndFence createSyncAndFence(VkDevice device, const int MAX_FRAMES_IN_FLIGHT, int swapChainImagesCount);
 

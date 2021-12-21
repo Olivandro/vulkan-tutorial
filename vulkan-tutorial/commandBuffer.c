@@ -61,7 +61,7 @@ VkCommandPool createCommandPool(VkDevice device, uint32_t presentFamily)
 }
 
 
-VkCommandBuffer* createCommandBuffers(VkDevice device, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkPipelineLayout pipelineLayout, VkFramebuffer* swapChainFramebuffers, VkCommandPool commandPool, int swapChainImagesCount, VkExtent2D extent, VkBuffer vertexBuffer, VkBuffer indexBuffer, uint32_t indicesSize, VkDescriptorSet* descriptorSets)
+VkCommandBuffer* createCommandBuffers(VkDevice device, VkRenderPass renderPass, VkPipeline graphicsPipeline, VkPipelineLayout pipelineLayout, VkFramebuffer* swapChainFramebuffers, VkCommandPool commandPool, int swapChainImagesCount, VkExtent2D extent, VkBuffer vertexBuffer, VkBuffer indexBuffer, uint32_t num_vertices, uint32_t indicesSize, VkDescriptorSet* descriptorSets)
 {
 
     VkCommandBuffer* commandBuffers = malloc(sizeof(VkCommandBuffer) * (size_t)(swapChainImagesCount + 1));
@@ -130,12 +130,12 @@ VkCommandBuffer* createCommandBuffers(VkDevice device, VkRenderPass renderPass, 
         VkBuffer vertexBuffers[] = {vertexBuffer};
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
-        vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
         vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, NULL);
 //      End..
         
 //        Vulkan draw command
-//        vkCmdDraw(commandBuffers[i], (uint32_t) sizeof(vertices), 1, 0, 0);
+//        vkCmdDraw(commandBuffers[i], num_vertices, 1, 0, 0);
         vkCmdDrawIndexed(commandBuffers[i], indicesSize, 1, 0, 0, 0);
         
         

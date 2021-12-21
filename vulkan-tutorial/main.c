@@ -1,4 +1,3 @@
-
 #include "geninc.h"
 #include "initVK.h"
 #include "deviceVK.h"
@@ -8,6 +7,7 @@
 #include "pipeline.h"
 #include "graphicsDataBuffer.h"
 #include "commandBuffer.h"
+#include "loadModel.h"
 
 
 
@@ -16,8 +16,15 @@
 #define VERTEX_SHADER_FILE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/shaders/shader.vert"
 #define FRAGMENT_SHADER_FILE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/shaders/shader.frag"
 
+// Texture path tests
+#define TEST_TEXTURE_FILE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/textures/sdl-fighf-logo.png"
 
-#define TEST_TEXTURE_FILE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/statue.jpg"
+//#define MODEL_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/models/viking_room.obj"
+//#define TEXTURE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/textures/viking_room.png"
+
+// Test paths
+#define MODEL_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/models/cardboard_box.obj"
+#define TEXTURE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/textures/cube_Material_BaseColor.png"
 
 
 /**
@@ -29,89 +36,9 @@ static const char* validationLayers =
 };
 
 
-// Depth buffer functions
 
-VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, const VkFormat* candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
-{
-    foreach(VkFormat format, candidates)
-    {
-        VkFormatProperties props;
-        vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
-        
-        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
-            return format;
-        } else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
-            return format;
-        }
-    }
-    
-    assert();
-}
 
-VkFormat findDepthFormat(VkPhysicalDevice physicalDevice)
-{
-    const VkFormat candidates[3] = {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT};
-    VkFormat format = findSupportedFormat(physicalDevice, candidates,VK_IMAGE_TILING_OPTIMAL,VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-    return format;
-}
 
-void createDepthResources(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, uint32_t width, uint32_t height, VkImage* depthImage, VkDeviceMemory* depthImageMemory, VkImageView* depthImageView)
-{
-    VkFormat depthFormat = VK_FORMAT_D32_SFLOAT_S8_UINT; // findDepthFormat(physicalDevice);
-    
-//    Create image & memory values
-    VkImageCreateInfo imageInfo;
-    imageInfo.pNext = NULL;
-    imageInfo.flags = VK_NULL_HANDLE;
-    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    imageInfo.imageType = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width = width;
-    imageInfo.extent.height = height;
-    imageInfo.extent.depth = 1;
-    imageInfo.mipLevels = 1;
-    imageInfo.arrayLayers = 1;
-    imageInfo.format = depthFormat;
-    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    if (vkCreateImage(device, &imageInfo, NULL, depthImage) != VK_SUCCESS) {
-        printf("failed to create image!\n");
-    }
-
-    VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-    
-    VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(device, *depthImage, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo;
-    allocInfo.pNext = NULL;
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, memProperties);
-
-    if (vkAllocateMemory(device, &allocInfo, NULL, depthImageMemory) != VK_SUCCESS) {
-        printf("failed to allocate image memory!\n");
-    }
-
-    vkBindImageMemory(device, *depthImage, *depthImageMemory, 0);
-    //    End of image & memory values
-    
-    VkImageView tempDepthImageView = VK_NULL_HANDLE;
-    createTextureImageView(device, *depthImage, depthFormat, &tempDepthImageView, VK_IMAGE_ASPECT_DEPTH_BIT);
-    *depthImageView = tempDepthImageView;
-    
-    transitionImageLayout(device, commandPool, graphicsQueue, *depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-}
-
-/**
- VkImage depthImage = VK_NULL_HANDLE;
- VkDeviceMemory depthImageMemory = VK_NULL_HANDLE;
- VkImageView depthImageView = VK_NULL_HANDLE;
- */
 
 /**
  This is the main draw function
@@ -295,35 +222,21 @@ int main(void) {
 
 //    this whole section can be abstracted into functions and return a single variable
 //    Functions needed: (1) parseShaders; (2) compileShaders; (3) createShaderProgram
-
-    
-//    TO DO:
-//    Add Vertex data here using the Vertex struct create above. Cast it here!!
     
     /**
             Creating the vertex buffer for drawing data coordinates.
      */
-     struct DrawingData vertices[8] =
-    {
-        {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-        {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
 
-        {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
-        {{0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
-        {{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
-        {{-0.5f, 0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
-        
-    };
+//    Implementation of loading 3d model into vertex struct and indices array
+    struct DrawingData* vertices = { NULL };
+    uint64_t num_vertices = 0;
+    uint32_t* indices = NULL;
+    uint64_t num_indices = 0;
     
-    uint16_t indices[12] =
-    {
-        0, 1, 2, 2, 3, 0,
-        4, 5, 6, 6, 7, 4
-    };
-     
-     
+//    Load model into data.
+//    NOTE: struct DrawingData and indices must be freed after biding with stagingBuffer and indicesBuffer!
+    loadModel(&vertices, &num_vertices, &indices, &num_indices, MODEL_PATH);
+    
     
 //    11.1 : Shaders (Vertex Shader first)::
     VkShaderModule vertShaderModule = createShaderProgram(device, VERTEX_SHADER_FILE_PATH, "main.vert", "main", 0);
@@ -410,7 +323,7 @@ int main(void) {
     VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
 
     
-    createTextureImage(device, physicalDevice, swapChainObj.commandPool, graphicsQueue, &textureImage, &textureImageMemory, TEST_TEXTURE_FILE_PATH);
+    createTextureImage(device, physicalDevice, swapChainObj.commandPool, graphicsQueue, &textureImage, &textureImageMemory, TEXTURE_PATH);
     
     
     
@@ -430,7 +343,7 @@ int main(void) {
     This is the vertex buffer
  */
     
-    VkDeviceSize bufferSize = (sizeof(vertices) / sizeof(vertices[0])) * sizeof(vertices);
+    VkDeviceSize bufferSize = num_vertices * sizeof(struct DrawingData);// (sizeof(vertices) / sizeof(vertices[0])) * sizeof(vertices);
     
     
     /**
@@ -447,8 +360,9 @@ int main(void) {
     
     void* data;
     vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, vertices, (size_t) bufferSize);
+    memcpy(data, vertices, bufferSize);
     vkUnmapMemory(device, stagingBufferMemory);
+    free(vertices);
     
     /**
         These 3 functions are combined into on function in the Vulkan tutorial...
@@ -458,6 +372,7 @@ int main(void) {
     VkDeviceMemory vertexBufferMemory = createVertexBufferMemory(device, physicalDevice, vertexBuffer, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
     vkBindBufferMemory(device, vertexBuffer, vertexBufferMemory, 0);
+//    free(vertices);
     /**
         End of.. function in the Vulkan tutorial...
      */
@@ -471,7 +386,7 @@ int main(void) {
             End of Vertex Buffer implementation...
      */
     
-    VkDeviceSize indicesBufferSize = (sizeof(indices) / sizeof(indices[0])) * sizeof(indices);
+    VkDeviceSize indicesBufferSize = (uint64_t)num_indices * sizeof(uint32_t);//(sizeof(indices) / sizeof(indices[0])) * sizeof(indices);
 
     /**
         These 3 functions are combined into on function in the Vulkan tutorial...
@@ -485,10 +400,11 @@ int main(void) {
      */
     
 
-    void* indicesdData;
-    vkMapMemory(device, indicesStagingBufferMemory, 0, indicesBufferSize, 0, &indicesdData);
-    memcpy(indicesdData, indices, indicesBufferSize);
+    void* indicesData;
+    vkMapMemory(device, indicesStagingBufferMemory, 0, indicesBufferSize, 0, &indicesData);
+    memcpy(indicesData, indices, indicesBufferSize);
     vkUnmapMemory(device, indicesStagingBufferMemory);
+    free(indices);
 
     
     /**
@@ -506,7 +422,7 @@ int main(void) {
 
     vkDestroyBuffer(device, indicesStagingBuffer, NULL);
     vkFreeMemory(device, indicesStagingBufferMemory, NULL);
-    
+//    free(indices);
     /**
             End of Index Buffer implementation...
      */
@@ -524,7 +440,7 @@ int main(void) {
     
 //    12.3 : Creating the command buffer
 //    VkCommandBuffer* commandBuffers = createCommandBuffers(device, renderPass, graphicsPipeline, swapChainFramebuffers, commandPool, swapChainImagesCount, presentsAnFormatsInfo.extent);
-    swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.pipelineLayout, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent, vertexBuffer, indicesBuffer, (uint32_t) sizeof(indices) / sizeof(indices[0]), descriptorSets);
+    swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.pipelineLayout, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent, vertexBuffer, indicesBuffer, (uint32_t) num_vertices, (uint32_t) num_indices /*sizeof(indices) / sizeof(indices[0])*/, descriptorSets);
         
     
 //  13 : rasterisation and Presentation of the triangle that we are drawing
@@ -611,6 +527,7 @@ int main(void) {
     
         vkDestroyShaderModule(device, vertShaderModule, NULL);
         vkDestroyShaderModule(device, fragShaderModule, NULL);
+        
         vkDestroyDevice(device, NULL);
         vkDestroySurfaceKHR(instance, surface, NULL);
         vkDestroyInstance(instance, NULL);

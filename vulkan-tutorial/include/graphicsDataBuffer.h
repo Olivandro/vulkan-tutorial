@@ -10,8 +10,6 @@
 
 #include "geninc.h"
 
-// Helper functions
-bool hasStencilComponent(VkFormat format);
 
 // Vertex and index buffer
 VkBuffer createVertexBuffer(VkDevice device, VkDeviceSize bufferSize, VkBufferUsageFlags usage);
@@ -48,5 +46,8 @@ void createTextureImage(VkDevice device, VkPhysicalDevice physicalDevice, VkComm
 void createTextureImageView(VkDevice device, VkImage textureImage, VkFormat format, VkImageView* textureImageView, VkImageAspectFlags aspectFlags);
 
 void createTextureSampler(VkDevice device, VkPhysicalDevice physicalDevice, VkSampler* textureSampler);
+
+// Depth Buffer functions
+void createDepthResources(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue graphicsQueue, uint32_t width, uint32_t height, VkImage* depthImage, VkDeviceMemory* depthImageMemory, VkImageView* depthImageView);
 
 #endif /* graphicsDataBuffer_h */

@@ -40,14 +40,6 @@
 //We redefine assert for our own purposes
 #define assert() return -1
 
-#define foreach(item, array) \
-    for(int keep = 1, \
-            count = 0,\
-            size = sizeof (array) / sizeof (array[0]); \
-        keep && count != size; \
-        keep = !keep, count++) \
-      for(item = (array) + count; keep; keep = !keep)
-
 
 
 /**
@@ -106,5 +98,10 @@ struct syncAndFence
     VkFence* imagesInFlight;
 };
 
+bool hasStencilComponent(VkFormat format);
+
+VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, const VkFormat* candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+
+VkFormat findDepthFormat(VkPhysicalDevice physicalDevice);
 
 #endif /* geninc_h */
