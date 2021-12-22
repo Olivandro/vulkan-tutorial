@@ -91,3 +91,7 @@ DerivedData/
 
 ## Gcc Patch
 /*.gcno
+
+## Build folder ignore
+build
+build/*
