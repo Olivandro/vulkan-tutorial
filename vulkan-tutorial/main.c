@@ -19,12 +19,12 @@
 // Texture path tests
 #define TEST_TEXTURE_FILE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/textures/sdl-fighf-logo.png"
 
-//#define MODEL_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/models/viking_room.obj"
-//#define TEXTURE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/textures/viking_room.png"
+#define MODEL_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/models/viking_room.obj"
+#define TEXTURE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/textures/viking_room.png"
 
 // Test paths
-#define MODEL_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/models/cardboard_box.obj"
-#define TEXTURE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/textures/cube_Material_BaseColor.png"
+//#define MODEL_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/models/cardboard_box.obj"
+//#define TEXTURE_PATH "/Users/olivandro/Apps/vulkan-tutorial/vulkan-tutorial/assets/textures/cube_Material_BaseColor.png"
 
 
 /**
@@ -440,7 +440,7 @@ int main(void) {
     
 //    12.3 : Creating the command buffer
 //    VkCommandBuffer* commandBuffers = createCommandBuffers(device, renderPass, graphicsPipeline, swapChainFramebuffers, commandPool, swapChainImagesCount, presentsAnFormatsInfo.extent);
-    swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.pipelineLayout, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent, vertexBuffer, indicesBuffer, (uint32_t) num_vertices, (uint32_t) num_indices /*sizeof(indices) / sizeof(indices[0])*/, descriptorSets);
+    swapChainObj.commandBuffers = createCommandBuffers(device, swapChainObj.renderPass, swapChainObj.graphicsPipeline, swapChainObj.pipelineLayout, swapChainObj.swapChainFramebuffers, swapChainObj.commandPool, swapChainObj.swapChainImagesCount, presentsAnFormatsInfo.extent, vertexBuffer, indicesBuffer, (uint32_t) num_vertices, (uint32_t) num_indices, descriptorSets);
         
     
 //  13 : rasterisation and Presentation of the triangle that we are drawing
